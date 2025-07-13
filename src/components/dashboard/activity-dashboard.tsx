@@ -44,7 +44,7 @@ export function ActivityDashboard() {
   const fetchActivities = async (email: string) => {
     try {
       const userActivities = await getActivities(email);
-      setActivities(userActivities);
+      setActivities(userActivities.sort((a, b) => b.date.localeCompare(a.date)));
     } catch (error) {
       console.error("Failed to fetch activities:", error);
       toast.error("Impossible de charger les activités.");
@@ -58,11 +58,11 @@ export function ActivityDashboard() {
     }
   };
 
-  const handleSaveActivity = async () => {
+  const handleSaveActivity = (newActivity: Activity) => {
     setIsModalOpen(false);
-    if (userEmail) {
-      fetchActivities(userEmail);
-    }
+    setActivities(prevActivities =>
+      [...prevActivities, newActivity].sort((a, b) => b.date.localeCompare(a.date))
+    );
   };
 
   if (!userEmail) {
@@ -108,7 +108,7 @@ export function ActivityDashboard() {
           <CardContent>
             {activities.length > 0 ? (
               <div className="space-y-3 h-64 overflow-y-auto pr-2">
-                {activities.sort((a, b) => b.date.localeCompare(a.date)).map((act) => (
+                {activities.map((act) => (
                   <div key={act.id} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50">
                     <div className="p-2 bg-background rounded-full shadow-sm">
                       {activityIcons[act.type]}
@@ -116,7 +116,7 @@ export function ActivityDashboard() {
                     <div className="flex-grow">
                       <p className="font-semibold capitalize">{act.type}</p>
                       <p className="text-sm text-muted-foreground">
-                        {format(new Date(act.date.replace(/-/g, '/')), "d MMMM yyyy", { locale: fr })}
+                        {format(new Date(act.date + 'T00:00:00'), "d MMMM yyyy", { locale: fr })}
                       </p>
                     </div>
                     <div className="text-right">

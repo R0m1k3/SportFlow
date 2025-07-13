@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ActivityType } from "@/types";
+import { Activity, ActivityType } from "@/types";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -28,7 +28,7 @@ import { addActivity } from "@/lib/db";
 interface ActivityModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: () => void;
+  onSave: (newActivity: Activity) => void;
   date: Date | undefined;
   userEmail: string;
 }
@@ -51,15 +51,18 @@ export function ActivityModal({ isOpen, onClose, onSave, date, userEmail }: Acti
       toast.error("Veuillez remplir tous les champs avec des valeurs valides.");
       return;
     }
+
+    const newActivityData: Omit<Activity, "id"> = {
+      userEmail,
+      date: format(date, "yyyy-MM-dd"),
+      type: activityType,
+      duration: parseInt(duration, 10),
+    };
+
     try {
-      await addActivity({
-        userEmail,
-        date: format(date, "yyyy-MM-dd"),
-        type: activityType,
-        duration: parseInt(duration, 10),
-      });
+      const newId = await addActivity(newActivityData);
       toast.success("Activité enregistrée !");
-      onSave();
+      onSave({ ...newActivityData, id: newId as number });
     } catch (error) {
       toast.error("Erreur lors de l'enregistrement de l'activité.");
       console.error(error);
