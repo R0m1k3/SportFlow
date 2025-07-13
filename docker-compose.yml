@@ -7,7 +7,13 @@ services:
       dockerfile: Dockerfile
     container_name: nextjs-activity-tracker
     ports:
-      - "3000:3000"
+      - "3500:3000"
     restart: unless-stopped
     environment:
       - NODE_ENV=production
+    networks:
+      - nginx_default
+
+networks:
+  nginx_default:
+    external: true
