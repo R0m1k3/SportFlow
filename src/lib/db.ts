@@ -2,7 +2,7 @@ import { Activity, User } from "@/types";
 import { hashPassword } from "./auth";
 
 const DB_NAME = "ActivityTrackerDB";
-const DB_VERSION = 6; // Version incrémentée pour forcer la mise à jour
+const DB_VERSION = 7; // Version incrémentée pour forcer la mise à jour de la structure
 const USERS_STORE = "users";
 const ACTIVITIES_STORE = "activities";
 
@@ -24,28 +24,42 @@ function getDbInstance(): Promise<IDBDatabase> {
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
 
-      // Cette logique s'exécutera car nous avons augmenté la version de la BDD.
-      // Elle supprime les anciens "stores" et en crée de nouveaux.
-      
-      if (db.objectStoreNames.contains(USERS_STORE)) {
-        db.deleteObjectStore(USERS_STORE);
+      // Crée les stores uniquement s'ils n'existent pas déjà
+      if (!db.objectStoreNames.contains(USERS_STORE)) {
+        const userStore = db.createObjectStore(USERS_STORE, { keyPath: "id", autoIncrement: true });
+        userStore.createIndex("email", "email", { unique: true });
+        userStore.createIndex("name", "name", { unique: true });
       }
-      const userStore = db.createObjectStore(USERS_STORE, { keyPath: "id", autoIncrement: true });
-      userStore.createIndex("email", "email", { unique: true });
-      userStore.createIndex("name", "name", { unique: true });
-      // Ajoute l'utilisateur admin avec un mot de passe correctement haché.
-      userStore.add({ email: "admin@example.com", name: "admin", password: hashPassword("admin"), role: "admin" });
-      
 
-      if (db.objectStoreNames.contains(ACTIVITIES_STORE)) {
-        db.deleteObjectStore(ACTIVITIES_STORE);
+      if (!db.objectStoreNames.contains(ACTIVITIES_STORE)) {
+        const activityStore = db.createObjectStore(ACTIVITIES_STORE, { keyPath: "id", autoIncrement: true });
+        activityStore.createIndex("userEmail_date", ["userEmail", "date"], { unique: false });
       }
-      const activityStore = db.createObjectStore(ACTIVITIES_STORE, { keyPath: "id", autoIncrement: true });
-      activityStore.createIndex("userEmail_date", ["userEmail", "date"], { unique: false });
+      // L'utilisateur admin ne sera plus ajouté ici, mais dans onsuccess pour s'assurer qu'il n'est ajouté qu'une seule fois.
     };
 
-    request.onsuccess = (event) => {
-      resolve((event.target as IDBOpenDBRequest).result);
+    request.onsuccess = async (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      try {
+        // Vérifie si l'utilisateur admin existe et l'ajoute si ce n'est pas le cas
+        const transaction = db.transaction(USERS_STORE, "readwrite");
+        const store = transaction.objectStore(USERS_STORE);
+        const countRequest = store.count();
+
+        countRequest.onsuccess = () => {
+          if (countRequest.result === 0) {
+            // Le store des utilisateurs est vide, ajoute l'utilisateur admin
+            store.add({ email: "admin@example.com", name: "admin", password: hashPassword("admin"), role: "admin" });
+            console.log("Admin user added on initial database creation.");
+          }
+        };
+        countRequest.onerror = (e) => console.error("Error counting users:", e);
+
+        resolve(db);
+      } catch (error) {
+        console.error("Error during onsuccess processing:", error);
+        reject(error);
+      }
     };
   });
 
