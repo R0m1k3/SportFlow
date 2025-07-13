@@ -1,7 +1,7 @@
 import { Activity, User } from "@/types";
 
 const DB_NAME = "ActivityTrackerDB";
-const DB_VERSION = 3; // Version incrémentée pour forcer la mise à jour du schéma
+const DB_VERSION = 4; // Version incrémentée pour forcer la mise à jour du schéma
 const USERS_STORE = "users";
 const ACTIVITIES_STORE = "activities";
 
@@ -17,38 +17,64 @@ function getDbInstance(): Promise<IDBDatabase> {
 
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
+      const transaction = (event.target as IDBOpenDBRequest).transaction;
+      
+      if (!transaction) {
+        console.error("Upgrade transaction is null, cannot proceed.");
+        reject(new Error("Upgrade transaction is null."));
+        return;
+      }
+
+      // USERS store
+      let userStore;
       if (!db.objectStoreNames.contains(USERS_STORE)) {
-        const userStore = db.createObjectStore(USERS_STORE, { keyPath: "id", autoIncrement: true });
+        userStore = db.createObjectStore(USERS_STORE, { keyPath: "id", autoIncrement: true });
+      } else {
+        userStore = transaction.objectStore(USERS_STORE);
+      }
+
+      if (!userStore.indexNames.contains("email")) {
         userStore.createIndex("email", "email", { unique: true });
+      }
+      if (!userStore.indexNames.contains("name")) {
         userStore.createIndex("name", "name", { unique: true });
       }
+
+      // ACTIVITIES store
+      let activityStore;
       if (!db.objectStoreNames.contains(ACTIVITIES_STORE)) {
-        const activityStore = db.createObjectStore(ACTIVITIES_STORE, { keyPath: "id", autoIncrement: true });
+        activityStore = db.createObjectStore(ACTIVITIES_STORE, { keyPath: "id", autoIncrement: true });
+      } else {
+        activityStore = transaction.objectStore(ACTIVITIES_STORE);
+      }
+
+      if (!activityStore.indexNames.contains("userEmail_date")) {
         activityStore.createIndex("userEmail_date", ["userEmail", "date"], { unique: false });
       }
     };
 
     request.onsuccess = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
-      // Seed admin user if it doesn't exist
-      const transaction = db.transaction(USERS_STORE, 'readwrite');
-      const store = transaction.objectStore(USERS_STORE);
+      resolve(db); // Résoudre la promesse dès que la connexion est réussie.
+
+      // Effectuer le "seeding" dans une transaction séparée.
+      const seedTransaction = db.transaction(USERS_STORE, 'readwrite');
+      const store = seedTransaction.objectStore(USERS_STORE);
       const adminRequest = store.index('name').get('admin');
+      
       adminRequest.onsuccess = () => {
         if (!adminRequest.result) {
           store.add({ email: "admin@example.com", name: "admin", password: "admin", role: "admin" });
         }
       };
-      transaction.oncomplete = () => {
-        resolve(db);
-      };
-      transaction.onerror = () => {
-        reject(transaction.error);
+      
+      seedTransaction.onerror = () => {
+        console.error("La transaction de seeding a échoué:", seedTransaction.error);
       }
     };
 
     request.onerror = (event) => {
-      console.error("Database open error:", (event.target as IDBOpenDBRequest).error);
+      console.error("Erreur d'ouverture de la base de données:", (event.target as IDBOpenDBRequest).error);
       reject((event.target as IDBOpenDBRequest).error);
     };
   });
