@@ -159,6 +159,9 @@ importers:
         specifier: ^3.25.28
         version: 3.25.28
     devDependencies:
+      '@types/better-sqlite3':
+        specifier: ^7.6.10
+        version: 7.6.13
       '@types/node':
         specifier: ^20
         version: 20.17.50
@@ -1040,6 +1043,9 @@ packages:
   '@types/bcryptjs@3.0.0':
     resolution: {integrity: sha512-WRZOuCuaz8UcZZE4R5HXTco2goQSI2XxjGY3hbM/xDvwmqFWd4ivooImsMx65OKM6CtNKbnZ5YL+YwAwK7c1dg==}
     deprecated: This is a stub types definition. bcryptjs provides its own type definitions, so you do not need this installed.
+
+  '@types/better-sqlite3@7.6.13':
+    resolution: {integrity: sha512-NMv9ASNARoKksWtsq/SHakpYAYnhBrQgGD8zkLYk/jaK8jUGn08CfEdTRgYhMypUQAfzSP8W6gNLe0q19/t4VA==}
 
   '@types/d3-array@3.2.1':
     resolution: {integrity: sha512-Y2Jn2idRrLzUfAKV2LyRImR+y4oa2AntrgID95SHJxuMUrkNXmanDSed71sRNZysveJVt1hLLemQZIady0FpEg==}
@@ -2785,6 +2791,10 @@ snapshots:
   '@types/bcryptjs@3.0.0':
     dependencies:
       bcryptjs: 3.0.2
+
+  '@types/better-sqlite3@7.6.13':
+    dependencies:
+      '@types/node': 20.17.50
 
   '@types/d3-array@3.2.1': {}
 
