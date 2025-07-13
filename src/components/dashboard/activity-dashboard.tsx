@@ -66,22 +66,98 @@ export function ActivityDashboard() {
     }
   };
 
-  const modifiers = {
-    active: activities.map(a => new Date(a.date)),
-  };
-  const modifiersStyles = {
-    active: {
-      borderColor: 'hsl(var(--primary))',
-      borderWidth: '2px',
-      borderRadius: 'var(--radius)',
-    },
-  };
-
   if (!userEmail) {
     return <p>Redirection...</p>;
   }
 
-  const calendarComponent = (
+  const activityStyles: Record<ActivityType, string> = {
+    vélo: "bg-sky-100 text-sky-800 dark:bg-sky-900/50 dark:text-sky-200",
+    musculation: "bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-200",
+    fitness: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200",
+    basket: "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200",
+  };
+
+  const activityDotColors: Record<ActivityType, string> = {
+    vélo: "bg-sky-500",
+    musculation: "bg-rose-500",
+    fitness: "bg-emerald-500",
+    basket: "bg-amber-500",
+  };
+
+  const DesktopDayContent = (props: { date: Date; displayMonth: Date }) => {
+    if (props.date.getMonth() !== props.displayMonth.getMonth()) {
+      return <>{format(props.date, "d")}</>;
+    }
+    const dayActivities = activities.filter(
+      (act) => format(new Date(act.date), "yyyy-MM-dd") === format(props.date, "yyyy-MM-dd")
+    );
+    return (
+      <div className="flex flex-col h-full w-full text-left p-1 relative">
+        <span className="self-end text-sm">{format(props.date, "d")}</span>
+        <div className="flex-grow overflow-hidden text-xs mt-1 space-y-1">
+          {dayActivities.slice(0, 2).map((act) => (
+            <div key={act.id} title={`${act.type} - ${act.duration} min`} className={`rounded-sm px-1.5 py-0.5 ${activityStyles[act.type]}`}>
+              <p className="truncate font-medium">{act.type.charAt(0).toUpperCase() + act.type.slice(1)}</p>
+            </div>
+          ))}
+          {dayActivities.length > 2 && (
+            <p className="text-muted-foreground text-center text-[10px]">+ {dayActivities.length - 2} de plus</p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const MobileDayContent = (props: { date: Date; displayMonth: Date }) => {
+    const dayActivities = activities.filter(
+      (act) => format(new Date(act.date), "yyyy-MM-dd") === format(props.date, "yyyy-MM-dd")
+    );
+    return (
+      <>
+        {format(props.date, "d")}
+        {dayActivities.length > 0 && (
+          <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex items-center space-x-1">
+            {dayActivities.slice(0, 4).map((act) => (
+              <div key={act.id} title={act.type} className={`h-1.5 w-1.5 rounded-full ${activityDotColors[act.type]}`} />
+            ))}
+          </div>
+        )}
+      </>
+    );
+  };
+
+  const desktopCalendar = (
+    <Calendar
+      mode="single"
+      selected={selectedDate}
+      onSelect={handleDayClick}
+      month={currentMonth}
+      onMonthChange={setCurrentMonth}
+      className="p-0"
+      classNames={{
+        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
+        month: "space-y-4 w-full",
+        caption: "flex justify-center pt-1 relative items-center",
+        caption_label: "text-sm font-medium",
+        nav: "space-x-1 flex items-center",
+        nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+        table: "w-full border-collapse space-y-1",
+        head_row: "flex w-full",
+        head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem]",
+        row: "flex w-full mt-2",
+        cell: "h-24 w-full text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+        day: "h-24 w-full p-0 font-normal aria-selected:opacity-100",
+        day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+        day_today: "bg-accent text-accent-foreground",
+        day_outside: "text-muted-foreground opacity-50",
+        day_disabled: "text-muted-foreground opacity-50",
+      }}
+      components={{ DayContent: DesktopDayContent }}
+      locale={fr}
+    />
+  );
+
+  const mobileCalendar = (
     <Calendar
       mode="single"
       selected={selectedDate}
@@ -98,8 +174,7 @@ export function ActivityDashboard() {
         day_outside: "text-muted-foreground opacity-50",
         day_disabled: "text-muted-foreground opacity-50",
       }}
-      modifiers={modifiers}
-      modifiersStyles={modifiersStyles}
+      components={{ DayContent: MobileDayContent }}
       locale={fr}
       initialFocus
     />
@@ -125,7 +200,7 @@ export function ActivityDashboard() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  {calendarComponent}
+                  {mobileCalendar}
                 </PopoverContent>
               </Popover>
             </CardContent>
@@ -133,7 +208,7 @@ export function ActivityDashboard() {
         ) : (
           <Card>
             <CardContent className="p-1 sm:p-2 md:p-4 flex justify-center">
-              {calendarComponent}
+              {desktopCalendar}
             </CardContent>
           </Card>
         )}
