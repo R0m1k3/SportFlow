@@ -5,7 +5,7 @@ import { Nav } from "@/components/dashboard/nav";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Calendar, LogOut, Menu, Users } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { UserRole } from "@/types";
 
@@ -16,6 +16,7 @@ export default function DashboardLayout({
 }) {
   const isMobile = useIsMobile();
   const router = useRouter();
+  const pathname = usePathname();
   const [userRole, setUserRole] = useState<UserRole | null>(null);
 
   useEffect(() => {
@@ -29,6 +30,12 @@ export default function DashboardLayout({
     router.push("/login");
   };
 
+  const getTitle = () => {
+    if (pathname.includes('/users')) return "Utilisateurs";
+    if (pathname.includes('/dashboard')) return "Tableau de bord";
+    return "Suivi Sportif";
+  }
+
   const navLinks = [
     { href: "/dashboard", label: "Calendrier", icon: Calendar },
   ];
@@ -39,8 +46,8 @@ export default function DashboardLayout({
 
   if (isMobile) {
     return (
-      <div className="flex min-h-screen w-full flex-col">
-        <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 justify-between">
+      <div className="flex min-h-screen w-full flex-col bg-muted/40">
+        <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 justify-between">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon">
@@ -48,15 +55,16 @@ export default function DashboardLayout({
                 <span className="sr-only">Ouvrir le menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left">
+            <SheetContent side="left" className="flex flex-col">
               <Nav isMobile={true} links={navLinks} />
             </SheetContent>
           </Sheet>
-          <Button onClick={handleLogout} variant="outline" size="icon">
+          <h1 className="text-lg font-semibold">{getTitle()}</h1>
+          <Button onClick={handleLogout} variant="ghost" size="icon">
             <LogOut className="h-5 w-5" />
           </Button>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+        <main className="flex flex-1 flex-col gap-4 p-4">
           {children}
         </main>
       </div>
@@ -82,7 +90,7 @@ export default function DashboardLayout({
         </div>
       </div>
       <div className="flex flex-col">
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
           {children}
         </main>
       </div>

@@ -1,20 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { getUserByName } from "@/lib/db";
+import { LogIn } from "lucide-react";
 
 export function LoginForm() {
   const [username, setUsername] = useState("admin");
@@ -36,41 +29,42 @@ export function LoginForm() {
   };
 
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl">Connexion</CardTitle>
-        <CardDescription>
-          Entrez vos identifiants pour accéder à votre tableau de bord.
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleLogin}>
-        <CardContent className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="username">Nom d'utilisateur</Label>
-            <Input
-              id="username"
-              type="text"
-              placeholder="admin"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">Mot de passe</Label>
-            <Input 
-              id="password" 
-              type="password" 
-              required 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button className="w-full" type="submit">Se connecter</Button>
-        </CardFooter>
+    <div className="w-full max-w-sm p-8 space-y-6 bg-card/80 dark:bg-card/50 backdrop-blur-lg rounded-2xl shadow-xl">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold tracking-tight">Connexion</h1>
+        <p className="text-muted-foreground">
+          Accédez à votre tableau de bord.
+        </p>
+      </div>
+      <form onSubmit={handleLogin} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="username">Nom d'utilisateur</Label>
+          <Input
+            id="username"
+            type="text"
+            placeholder="admin"
+            required
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="h-12 text-base"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Mot de passe</Label>
+          <Input 
+            id="password" 
+            type="password" 
+            required 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="h-12 text-base"
+          />
+        </div>
+        <Button className="w-full text-lg py-6 group" type="submit">
+          Se connecter
+          <LogIn className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
+        </Button>
       </form>
-    </Card>
+    </div>
   );
 }

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PlusCircle, Trash, Edit } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Trash, Edit, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { UserFormModal } from "./user-form-modal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -96,26 +96,29 @@ export function UserManagement() {
           <CardTitle>Gestion des utilisateurs</CardTitle>
           <Button size="sm" onClick={handleAddUser}>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Ajouter un utilisateur
+            Ajouter
           </Button>
         </CardHeader>
         <CardContent>
           {isMobile ? (
             <div className="space-y-4">
               {users.map((user) => (
-                <Card key={user.id}>
-                  <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
-                    <div>
-                      <p className="font-medium">{user.name}</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                <Card key={user.id} className="overflow-hidden">
+                  <div className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-muted p-3 rounded-full">
+                        <UserIcon className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">{user.name}</p>
+                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                      </div>
                     </div>
                     {renderUserActions(user)}
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0">
-                    <div className="text-sm text-muted-foreground">
-                      Rôle: <span className="font-medium text-foreground capitalize">{user.role}</span>
-                    </div>
-                  </CardContent>
+                  </div>
+                  <div className="bg-muted/50 px-4 py-2 text-xs text-muted-foreground font-medium">
+                    Rôle: <span className="text-foreground capitalize">{user.role}</span>
+                  </div>
                 </Card>
               ))}
             </div>
@@ -123,8 +126,7 @@ export function UserManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nom</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead>Utilisateur</TableHead>
                   <TableHead>Rôle</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -132,8 +134,10 @@ export function UserManagement() {
               <TableBody>
                 {users.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <div className="font-medium">{user.name}</div>
+                      <div className="text-sm text-muted-foreground">{user.email}</div>
+                    </TableCell>
                     <TableCell className="capitalize">{user.role}</TableCell>
                     <TableCell className="text-right">
                       {renderUserActions(user)}

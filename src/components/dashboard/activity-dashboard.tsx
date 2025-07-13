@@ -8,8 +8,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format, startOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getActivities } from "@/lib/db";
-import { Activity } from "@/types";
+import { Activity, ActivityType } from "@/types";
 import { MonthlyStats } from "./monthly-stats";
+import { Bike, Dumbbell, HeartPulse, Dribbble } from "lucide-react";
+
+const activityIcons: Record<ActivityType, React.ReactNode> = {
+  vélo: <Bike className="h-5 w-5" />,
+  musculation: <Dumbbell className="h-5 w-5" />,
+  fitness: <HeartPulse className="h-5 w-5" />,
+  basket: <Dribbble className="h-5 w-5" />,
+};
 
 export function ActivityDashboard() {
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -64,20 +72,25 @@ export function ActivityDashboard() {
   }
 
   return (
-    <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-3">
       <div className="lg:col-span-2">
         <Card>
-          <CardContent className="p-2 sm:p-4 md:p-6 flex justify-center">
+          <CardContent className="p-1 sm:p-2 md:p-4 flex justify-center">
             <Calendar
               mode="single"
               selected={selectedDate}
               onSelect={handleDayClick}
               month={currentMonth}
               onMonthChange={setCurrentMonth}
-              className="text-base"
+              className="p-0"
               classNames={{
-                head_cell: "w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20",
-                cell: "w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20",
+                head_cell: "text-muted-foreground rounded-md w-9 h-9 sm:w-10 sm:h-10 font-normal text-[0.8rem]",
+                cell: "h-9 w-9 sm:h-10 sm:w-10 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                day: "h-9 w-9 sm:h-10 sm:w-10 p-0 font-normal aria-selected:opacity-100",
+                day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                day_today: "bg-accent text-accent-foreground",
+                day_outside: "text-muted-foreground opacity-50",
+                day_disabled: "text-muted-foreground opacity-50",
               }}
               modifiers={modifiers}
               modifiersStyles={modifiersStyles}
@@ -86,23 +99,34 @@ export function ActivityDashboard() {
           </CardContent>
         </Card>
       </div>
-      <div className="space-y-8">
+      <div className="space-y-4 md:space-y-8">
         <MonthlyStats activities={activities} month={currentMonth} />
         <Card>
           <CardHeader>
-            <CardTitle>Activités enregistrées</CardTitle>
+            <CardTitle>Activités récentes</CardTitle>
           </CardHeader>
           <CardContent>
             {activities.length > 0 ? (
-              <ul className="space-y-2 h-64 overflow-y-auto">
+              <div className="space-y-3 h-64 overflow-y-auto pr-2">
                 {activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((act) => (
-                  <li key={act.id} className="text-sm p-2 rounded-md bg-muted">
-                    <span className="font-semibold">{format(new Date(act.date), "d MMMM yyyy", { locale: fr })}:</span> {act.type} - {act.duration} minutes
-                  </li>
+                  <div key={act.id} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50">
+                    <div className="p-2 bg-background rounded-full shadow-sm">
+                      {activityIcons[act.type]}
+                    </div>
+                    <div className="flex-grow">
+                      <p className="font-semibold capitalize">{act.type}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(act.date), "d MMMM yyyy", { locale: fr })}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">{act.duration} min</p>
+                    </div>
+                  </div>
                 ))}
-              </ul>
+              </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Aucune activité pour le moment.</p>
+              <p className="text-sm text-muted-foreground text-center py-8">Aucune activité pour le moment.</p>
             )}
           </CardContent>
         </Card>
