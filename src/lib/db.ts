@@ -23,18 +23,27 @@ function openDB(): Promise<IDBDatabase> {
 
     request.onsuccess = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
-      // Add a default user if none exist
-      const transaction = db.transaction(USERS_STORE, "readonly");
+      
+      const transaction = db.transaction(USERS_STORE, "readwrite");
       const store = transaction.objectStore(USERS_STORE);
       const countRequest = store.count();
+
       countRequest.onsuccess = () => {
         if (countRequest.result === 0) {
-          const addTransaction = db.transaction(USERS_STORE, "readwrite");
-          const addStore = addTransaction.objectStore(USERS_STORE);
-          addStore.add({ email: "admin@example.com", name: "admin", password: "admin" });
+          // No users, add the default admin
+          store.add({ email: "admin@example.com", name: "admin", password: "admin" });
         }
       };
-      resolve(db);
+      
+      transaction.oncomplete = () => {
+        // The transaction (either just counting, or counting and adding) is complete.
+        // Now it's safe to resolve.
+        resolve(db);
+      };
+
+      transaction.onerror = (event) => {
+        reject("Database transaction error: " + (event.target as IDBTransaction).error);
+      };
     };
 
     request.onerror = (event) => {
