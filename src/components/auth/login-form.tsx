@@ -14,23 +14,23 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { getUserByEmail } from "@/lib/db";
+import { getUserByName } from "@/lib/db";
 
 export function LoginForm() {
-  const [email, setEmail] = useState("user@example.com");
-  const [password, setPassword] = useState("password");
+  const [username, setUsername] = useState("admin");
+  const [password, setPassword] = useState("admin");
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const user = await getUserByEmail(email);
+    const user = await getUserByName(username);
 
     if (user && user.password === password) {
       toast.success("Connexion réussie ! Redirection...");
       localStorage.setItem("loggedInUser", user.email);
       router.push('/dashboard');
     } else {
-      toast.error("Email ou mot de passe incorrect.");
+      toast.error("Nom d'utilisateur ou mot de passe incorrect.");
     }
   };
 
@@ -45,14 +45,14 @@ export function LoginForm() {
       <form onSubmit={handleLogin}>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="username">Nom d'utilisateur</Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="m@exemple.com"
+              id="username"
+              type="text"
+              placeholder="admin"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
             />
           </div>
           <div className="grid gap-2">

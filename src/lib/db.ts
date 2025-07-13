@@ -31,7 +31,7 @@ function openDB(): Promise<IDBDatabase> {
         if (countRequest.result === 0) {
           const addTransaction = db.transaction(USERS_STORE, "readwrite");
           const addStore = addTransaction.objectStore(USERS_STORE);
-          addStore.add({ email: "user@example.com", name: "Utilisateur de démo", password: "password" });
+          addStore.add({ email: "admin@example.com", name: "admin", password: "admin" });
         }
       };
       resolve(db);
@@ -94,6 +94,11 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
     });
+}
+
+export async function getUserByName(name: string): Promise<User | undefined> {
+    const users = await getUsers();
+    return users.find(user => user.name === name);
 }
 
 // Activity Functions
