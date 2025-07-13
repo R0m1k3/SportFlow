@@ -1,17 +1,49 @@
-import initSqlJs, { SqlJsStatic, Database } from 'sql.js';
+import initSqlJs, { SqlJsStatic, Database, SqlValue, Statement } from 'sql.js';
 import path from 'path';
 import fs from 'fs';
 import { hashPassword } from './auth';
+import { Activity, ActivityType, User, UserRole } from '@/types';
 
 // Path to the database file
 const dbFilePath = path.join(process.cwd(), 'data', 'app.db');
 const dataDir = path.join(process.cwd(), 'data');
 
 // Global variables to store the SQL.js instance and the database instance
-// This ensures they are initialized once and reused across requests in a serverless environment
 declare global {
   var __SQL_JS_INSTANCE: SqlJsStatic | undefined;
   var __SQL_DB_INSTANCE: Database | undefined;
+}
+
+// Helper function to map a row array to a User object
+const mapRowToUser = (row: SqlValue[]): User => ({
+  id: row[0] as number,
+  email: row[1] as string,
+  name: row[2] as string,
+  password: row[3] as string,
+  role: row[4] as UserRole,
+});
+
+// Helper function to map a row array to an Activity object
+const mapRowToActivity = (row: SqlValue[]): Activity => ({
+  id: row[0] as number,
+  userEmail: row[1] as string,
+  date: row[2] as string,
+  type: row[3] as ActivityType,
+  duration: row[4] as number,
+});
+
+// Define the type for the result of a run operation
+interface RunResult {
+  changes: number;
+  lastInsertRowid: number;
+}
+
+// Define the type for the prepared statement wrapper
+export interface WrappedStatement {
+  run: (...params: any[]) => RunResult;
+  get: (...params: any[]) => SqlValue[] | null;
+  all: (...params: any[]) => SqlValue[][];
+  finalize: () => void;
 }
 
 // Function to get or initialize the database
@@ -69,18 +101,14 @@ const getDb = async (): Promise<Database> => {
 
     // Add admin user if the table is empty
     const adminCountStmt = globalThis.__SQL_DB_INSTANCE.prepare("SELECT COUNT(*) FROM users WHERE email = 'admin@example.com'");
-    const adminCount = adminCountStmt.get() as { 'COUNT(*)': number };
+    const adminCount = (adminCountStmt.get() as SqlValue[] | null)?.[0] as number || 0;
     adminCountStmt.free(); // Release the statement
     
-    if (adminCount['COUNT(*)'] === 0) {
+    if (adminCount === 0) {
       const hashedPassword = hashPassword("admin");
       const insertAdminStmt = globalThis.__SQL_DB_INSTANCE.prepare("INSERT INTO users (email, name, password, role) VALUES (?, ?, ?, ?)");
-      insertAdminStmt.run(
-        "admin@example.com",
-        "admin",
-        hashedPassword,
-        "admin"
-      );
+      // Fix for Error 1: Pass arguments as an array
+      insertAdminStmt.run(["admin@example.com", "admin", hashedPassword, "admin"]);
       insertAdminStmt.free(); // Release the statement
       console.log("Admin user added to SQLite database.");
     } else {
@@ -103,19 +131,19 @@ const getDb = async (): Promise<Database> => {
 
 // Wrapper for database operations
 const dbWrapper = {
-  prepare: async (sql: string) => {
+  prepare: async (sql: string): Promise<WrappedStatement> => {
     const currentDb = await getDb();
-    const stmt = currentDb.prepare(sql);
+    const stmt: Statement = currentDb.prepare(sql);
     return {
-      run: (...params: any[]) => {
-        const result = stmt.run(...params);
-        // Persist changes to disk after every write operation
+      run: (...params: any[]): RunResult => {
+        const result = stmt.run(...params) as any; 
         fs.writeFileSync(dbFilePath, Buffer.from(currentDb.export()));
-        return result;
+        return result as RunResult;
       },
-      get: (...params: any[]) => stmt.get(...params),
-      all: (...params: any[]) => stmt.all(...params),
-      finalize: () => stmt.free(), // Method to explicitly free the statement
+      get: (...params: any[]): SqlValue[] | null => stmt.get(...params),
+      // Fix for Error 2: Cast to any to access 'all' method
+      all: (...params: any[]): SqlValue[][] => (stmt as any).all(...params),
+      finalize: () => stmt.free(),
     };
   },
   exec: async (sql: string) => {
@@ -128,3 +156,5 @@ const dbWrapper = {
 };
 
 export default dbWrapper;
+
+export { mapRowToUser, mapRowToActivity }; // Export helper functions

@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/sqlite'; // Import the new dbWrapper
+import db, { WrappedStatement, mapRowToActivity } from '@/lib/sqlite'; // Import the new dbWrapper and mapRowToActivity
 import { Activity } from '@/types';
 
 export async function GET(request: Request) {
-  let stmt;
+  let stmt: WrappedStatement | undefined; // Explicitly type stmt
   try {
     const { searchParams } = new URL(request.url);
     const userEmail = searchParams.get('userEmail');
@@ -13,7 +13,8 @@ export async function GET(request: Request) {
     }
 
     stmt = await db.prepare("SELECT * FROM activities WHERE userEmail = ? ORDER BY date DESC");
-    const activities = stmt.all(userEmail) as Activity[];
+    const activityRows = stmt.all(userEmail); // Get raw rows
+    const activities = activityRows.map(mapRowToActivity); // Map to Activity objects
     return NextResponse.json(activities);
   } catch (error) {
     console.error("Error fetching activities:", error);
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  let stmt;
+  let stmt: WrappedStatement | undefined; // Explicitly type stmt
   try {
     const { userEmail, date, type, duration } = await request.json();
     stmt = await db.prepare("INSERT INTO activities (userEmail, date, type, duration) VALUES (?, ?, ?, ?)");

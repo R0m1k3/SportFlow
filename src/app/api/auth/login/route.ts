@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/sqlite'; // Import the new dbWrapper
+import db, { WrappedStatement, mapRowToUser } from '@/lib/sqlite'; // Import the new dbWrapper and mapRowToUser
 import { comparePassword } from '@/lib/auth';
 import { User } from '@/types';
 
 export async function POST(request: Request) {
   console.log("API: /api/auth/login POST request received.");
-  let stmt;
+  let stmt: WrappedStatement | undefined; // Explicitly type stmt
 
   try {
     console.log("API: Parsing request body...");
@@ -19,7 +19,8 @@ export async function POST(request: Request) {
 
     console.log("API: Attempting to find user in DB...");
     stmt = await db.prepare("SELECT * FROM users WHERE email = ? OR name = ?");
-    const user = stmt.get(username, username) as User;
+    const userRow = stmt.get(username, username); // Get raw row
+    const user: User | undefined = userRow ? mapRowToUser(userRow) : undefined; // Map to User object
     stmt.finalize(); // Finalize after use
     console.log("API: User lookup complete. User found:", !!user);
 

@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/sqlite'; // Import the new dbWrapper
+import db, { WrappedStatement, mapRowToUser } from '@/lib/sqlite'; // Import the new dbWrapper and mapRowToUser
 import { hashPassword } from '@/lib/auth';
 import { User } from '@/types';
 
 export async function GET() {
-  let stmt;
+  let stmt: WrappedStatement | undefined; // Explicitly type stmt
   try {
-    stmt = await db.prepare("SELECT id, email, name, role FROM users");
-    const users = stmt.all() as User[];
+    stmt = await db.prepare("SELECT id, email, name, role, password FROM users"); // Select password to map correctly
+    const userRows = stmt.all(); // Get raw rows
+    const users = userRows.map(mapRowToUser).map(({ password, ...rest }) => rest); // Map to User objects and exclude password
     console.log("API GET /api/users - Fetched users (excluding password):", users.map(u => ({ id: u.id, email: u.email, name: u.name, role: u.role })));
     return NextResponse.json(users);
   } catch (error) {
@@ -19,16 +20,16 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  let stmt;
+  let stmt: WrappedStatement | undefined; // Explicitly type stmt
   try {
     const { name, email, password, role } = await request.json();
 
     // Check if user with same email or name already exists
     stmt = await db.prepare("SELECT id FROM users WHERE email = ? OR name = ?");
-    const existingUser = stmt.get(email, name);
+    const existingUserRow = stmt.get(email, name); // Get raw row
     stmt.finalize(); // Finalize after use
     
-    if (existingUser) {
+    if (existingUserRow) {
       console.warn("API POST /api/users - User with this email or name already exists:", email, name);
       return NextResponse.json({ message: "User with this email or name already exists." }, { status: 409 });
     }
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  let stmt;
+  let stmt: WrappedStatement | undefined; // Explicitly type stmt
   try {
     const { id, name, email, password, role } = await request.json();
 
@@ -59,13 +60,14 @@ export async function PUT(request: Request) {
     }
 
     stmt = await db.prepare("SELECT * FROM users WHERE id = ?");
-    const existingUser = stmt.get(id) as User;
+    const existingUserRow = stmt.get(id); // Get raw row
     stmt.finalize(); // Finalize after use
 
-    if (!existingUser) {
+    if (!existingUserRow) {
       console.warn("API PUT /api/users - User not found for ID:", id);
       return NextResponse.json({ message: "User not found." }, { status: 404 });
     }
+    const existingUser: User = mapRowToUser(existingUserRow); // Map to User object
 
     let hashedPassword = existingUser.password;
     if (password) {
@@ -88,7 +90,7 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  let stmt;
+  let stmt: WrappedStatement | undefined; // Explicitly type stmt
   try {
     const { id } = await request.json();
     if (!id) {
