@@ -35,7 +35,7 @@ export function ActivityDashboard() {
   useEffect(() => {
     const email = localStorage.getItem("loggedInUser");
     if (!email) {
-      router.push("/login");
+      router.push("/");
     } else {
       setUserEmail(email);
       fetchActivities(email);

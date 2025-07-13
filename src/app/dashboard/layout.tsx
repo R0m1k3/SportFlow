@@ -27,7 +27,7 @@ export default function DashboardLayout({
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
     localStorage.removeItem("userRole");
-    router.push("/login");
+    router.push("/");
   };
 
   const getTitle = () => {
