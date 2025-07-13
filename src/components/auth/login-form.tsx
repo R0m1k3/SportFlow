@@ -14,21 +14,24 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { getUserByEmail } from "@/lib/db";
 
 export function LoginForm() {
   const [email, setEmail] = useState("user@example.com");
   const [password, setPassword] = useState("password");
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Ceci est une simulation. Dans une vraie application, nous vérifierions les identifiants.
-    console.log("Logging in with:", { email, password });
-    toast.success("Connexion réussie ! Redirection...");
-    
-    setTimeout(() => {
+    const user = await getUserByEmail(email);
+
+    if (user && user.password === password) {
+      toast.success("Connexion réussie ! Redirection...");
+      localStorage.setItem("loggedInUser", user.email);
       router.push('/dashboard');
-    }, 1000);
+    } else {
+      toast.error("Email ou mot de passe incorrect.");
+    }
   };
 
   return (

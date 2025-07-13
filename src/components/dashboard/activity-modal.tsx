@@ -19,50 +19,55 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ActivityType } from "./activity-calendar";
+import { ActivityType } from "@/types";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { addActivity } from "@/lib/db";
 
 interface ActivityModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (activity: { type: ActivityType; duration: number }) => void;
+  onSave: () => void;
   date: Date | undefined;
+  userEmail: string;
 }
 
 const activityOptions: ActivityType[] = ["vélo", "musculation", "fitness", "basket"];
 
-export function ActivityModal({ isOpen, onClose, onSave, date }: ActivityModalProps) {
+export function ActivityModal({ isOpen, onClose, onSave, date, userEmail }: ActivityModalProps) {
   const [activityType, setActivityType] = useState<ActivityType | undefined>();
   const [duration, setDuration] = useState("");
 
   useEffect(() => {
     if (!isOpen) {
-      // Reset form when modal is closed
       setActivityType(undefined);
       setDuration("");
     }
   }, [isOpen]);
 
-  const handleSave = () => {
-    if (!activityType || !duration || parseInt(duration, 10) <= 0) {
+  const handleSave = async () => {
+    if (!activityType || !duration || !date || parseInt(duration, 10) <= 0) {
       toast.error("Veuillez remplir tous les champs avec des valeurs valides.");
       return;
     }
-    onSave({ type: activityType, duration: parseInt(duration, 10) });
-    toast.success("Activité enregistrée !");
-    onClose();
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      onClose();
+    try {
+      await addActivity({
+        userEmail,
+        date: format(date, "yyyy-MM-dd"),
+        type: activityType,
+        duration: parseInt(duration, 10),
+      });
+      toast.success("Activité enregistrée !");
+      onSave();
+    } catch (error) {
+      toast.error("Erreur lors de l'enregistrement de l'activité.");
+      console.error(error);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Ajouter une activité</DialogTitle>

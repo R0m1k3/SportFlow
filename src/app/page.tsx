@@ -1,4 +1,3 @@
-import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity } from "lucide-react";
@@ -27,9 +26,6 @@ export default function Home() {
           </CardContent>
         </Card>
       </main>
-      <div className="absolute bottom-4">
-        <MadeWithDyad />
-      </div>
     </div>
   );
 }
