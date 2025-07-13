@@ -2,7 +2,7 @@ import { Activity, User } from "@/types";
 import { hashPassword } from "./auth";
 
 const DB_NAME = "ActivityTrackerDB";
-const DB_VERSION = 5;
+const DB_VERSION = 6; // Version incrémentée pour forcer la mise à jour
 const USERS_STORE = "users";
 const ACTIVITIES_STORE = "activities";
 
@@ -24,18 +24,24 @@ function getDbInstance(): Promise<IDBDatabase> {
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
 
-      if (!db.objectStoreNames.contains(USERS_STORE)) {
-        const userStore = db.createObjectStore(USERS_STORE, { keyPath: "id", autoIncrement: true });
-        userStore.createIndex("email", "email", { unique: true });
-        userStore.createIndex("name", "name", { unique: true });
-        // Hash the admin password on creation
-        userStore.add({ email: "admin@example.com", name: "admin", password: hashPassword("admin"), role: "admin" });
+      // Cette logique s'exécutera car nous avons augmenté la version de la BDD.
+      // Elle supprime les anciens "stores" et en crée de nouveaux.
+      
+      if (db.objectStoreNames.contains(USERS_STORE)) {
+        db.deleteObjectStore(USERS_STORE);
       }
+      const userStore = db.createObjectStore(USERS_STORE, { keyPath: "id", autoIncrement: true });
+      userStore.createIndex("email", "email", { unique: true });
+      userStore.createIndex("name", "name", { unique: true });
+      // Ajoute l'utilisateur admin avec un mot de passe correctement haché.
+      userStore.add({ email: "admin@example.com", name: "admin", password: hashPassword("admin"), role: "admin" });
+      
 
-      if (!db.objectStoreNames.contains(ACTIVITIES_STORE)) {
-        const activityStore = db.createObjectStore(ACTIVITIES_STORE, { keyPath: "id", autoIncrement: true });
-        activityStore.createIndex("userEmail_date", ["userEmail", "date"], { unique: false });
+      if (db.objectStoreNames.contains(ACTIVITIES_STORE)) {
+        db.deleteObjectStore(ACTIVITIES_STORE);
       }
+      const activityStore = db.createObjectStore(ACTIVITIES_STORE, { keyPath: "id", autoIncrement: true });
+      activityStore.createIndex("userEmail_date", ["userEmail", "date"], { unique: false });
     };
 
     request.onsuccess = (event) => {
