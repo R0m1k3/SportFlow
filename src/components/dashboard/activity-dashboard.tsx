@@ -7,7 +7,7 @@ import { ActivityModal } from "./activity-modal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format, startOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
-import { getActivities, addActivity } from "@/lib/db";
+import { getActivities } from "@/lib/db";
 import { Activity } from "@/types";
 import { MonthlyStats } from "./monthly-stats";
 
@@ -76,8 +76,8 @@ export function ActivityDashboard() {
               onMonthChange={setCurrentMonth}
               className="text-base"
               classNames={{
-                head_cell: "w-16 h-16 sm:w-20 sm:h-20",
-                cell: "w-16 h-16 sm:w-20 sm:h-20",
+                head_cell: "w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20",
+                cell: "w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20",
               }}
               modifiers={modifiers}
               modifiersStyles={modifiersStyles}
