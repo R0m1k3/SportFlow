@@ -29,12 +29,20 @@ export function LoginForm() {
 
   const handleLogin = async (values: z.infer<typeof formSchema>) => {
     try {
+      console.log("Attempting to fetch users from /api/users...");
       const response = await fetch('/api/users');
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Failed to fetch users. Response status:", response.status, "Response text:", errorText);
         throw new Error('Failed to fetch users');
       }
+      
       const users: User[] = await response.json();
+      console.log("Users fetched successfully:", users);
+
       const user = users.find(u => u.name === values.username || u.email === values.username);
+      console.log("Found user:", user ? user.name : "None");
 
       if (user && comparePassword(values.password, user.password)) {
         toast.success("Connexion réussie ! Redirection...");
@@ -43,6 +51,7 @@ export function LoginForm() {
         router.push('/dashboard');
       } else {
         toast.error("Nom d'utilisateur ou mot de passe incorrect.");
+        console.log("Login failed: Incorrect username/password or user not found.");
       }
     } catch (error) {
       console.error("Login error:", error);

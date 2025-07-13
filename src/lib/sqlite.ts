@@ -8,11 +8,13 @@ const dbPath = path.join(process.cwd(), 'data', 'app.db');
 // Créer le répertoire 'data' si il n'existe pas
 if (!fs.existsSync(path.join(process.cwd(), 'data'))) {
   fs.mkdirSync(path.join(process.cwd(), 'data'));
+  console.log("Data directory created.");
 }
 
 const db = new Database(dbPath);
 
 db.pragma('journal_mode = WAL'); // Améliore la concurrence et la robustesse
+console.log("SQLite database opened at:", dbPath);
 
 // Initialisation de la base de données
 db.exec(`
@@ -32,6 +34,7 @@ db.exec(`
     duration INTEGER NOT NULL
   );
 `);
+console.log("Tables checked/created.");
 
 // Ajouter l'utilisateur admin si la table est vide
 const adminCount = db.prepare("SELECT COUNT(*) FROM users WHERE email = 'admin@example.com'").get() as { 'COUNT(*)': number };
@@ -44,6 +47,8 @@ if (adminCount['COUNT(*)'] === 0) {
     "admin"
   );
   console.log("Admin user added to SQLite database.");
+} else {
+  console.log("Admin user already exists in SQLite database.");
 }
 
 export default db;
