@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { User, UserRole } from "@/types";
-import { addUser, updateUser } from "@/lib/db";
 import { toast } from "sonner";
 
 interface UserFormModalProps {
@@ -55,9 +54,17 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
 
   const handleSave = async (values: z.infer<typeof formSchema>) => {
     try {
+      let response;
       if (isEditing && user) {
         const updatedUserData: User = { ...user, ...values };
-        await updateUser(updatedUserData);
+        response = await fetch('/api/users', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedUserData),
+        });
+        if (!response.ok) {
+          throw new Error('Failed to update user');
+        }
         toast.success("Utilisateur mis à jour avec succès.");
       } else {
         const newUserData: Omit<User, 'id'> = {
@@ -66,12 +73,20 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
           password: values.password!, // Password is required by createSchema
           role: values.role as UserRole,
         };
-        await addUser(newUserData);
+        response = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newUserData),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to add user');
+        }
         toast.success("Utilisateur ajouté avec succès.");
       }
       onSave();
-    } catch (error) {
-      toast.error("Une erreur est survenue. L'email ou le nom est peut-être déjà utilisé.");
+    } catch (error: any) {
+      toast.error(`Une erreur est survenue: ${error.message || "L'email ou le nom est peut-être déjà utilisé."}`);
       console.error(error);
     }
   };

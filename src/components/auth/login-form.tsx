@@ -5,12 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { getUserByName } from "@/lib/db";
 import { LogIn } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { comparePassword } from "@/lib/auth";
+import { User } from "@/types"; // Import the User type
 
 const formSchema = z.object({
   username: z.string().min(1, "Le nom d'utilisateur est requis."),
@@ -28,15 +28,25 @@ export function LoginForm() {
   });
 
   const handleLogin = async (values: z.infer<typeof formSchema>) => {
-    const user = await getUserByName(values.username);
+    try {
+      const response = await fetch('/api/users');
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      const users: User[] = await response.json();
+      const user = users.find(u => u.name === values.username || u.email === values.username);
 
-    if (user && comparePassword(values.password, user.password)) {
-      toast.success("Connexion réussie ! Redirection...");
-      localStorage.setItem("loggedInUser", user.email);
-      localStorage.setItem("userRole", user.role);
-      router.push('/dashboard');
-    } else {
-      toast.error("Nom d'utilisateur ou mot de passe incorrect.");
+      if (user && comparePassword(values.password, user.password)) {
+        toast.success("Connexion réussie ! Redirection...");
+        localStorage.setItem("loggedInUser", user.email);
+        localStorage.setItem("userRole", user.role);
+        router.push('/dashboard');
+      } else {
+        toast.error("Nom d'utilisateur ou mot de passe incorrect.");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("Une erreur est survenue lors de la connexion.");
     }
   };
 

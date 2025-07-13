@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { User } from "@/types";
-import { getUsers, deleteUser } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -27,10 +26,15 @@ export function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      const allUsers = await getUsers();
+      const response = await fetch('/api/users');
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      const allUsers: User[] = await response.json();
       setUsers(allUsers);
     } catch (error) {
       toast.error("Erreur lors de la récupération des utilisateurs.");
+      console.error("Fetch users error:", error);
     }
   };
 
@@ -52,11 +56,19 @@ export function UserManagement() {
   const handleDeleteUser = async () => {
     if (!userToDelete || !userToDelete.id) return;
     try {
-      await deleteUser(userToDelete.id);
+      const response = await fetch('/api/users', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: userToDelete.id }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete user');
+      }
       toast.success(`L'utilisateur ${userToDelete.name} a été supprimé.`);
       fetchUsers();
     } catch (error) {
       toast.error("Erreur lors de la suppression de l'utilisateur.");
+      console.error("Delete user error:", error);
     } finally {
       setIsAlertOpen(false);
       setUserToDelete(null);

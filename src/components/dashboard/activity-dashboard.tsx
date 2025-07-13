@@ -8,7 +8,6 @@ import { fr } from "date-fns/locale";
 import { DayContentProps, DayModifiers } from "react-day-picker";
 import { cn } from "@/lib/utils";
 
-import { getActivities } from "@/lib/db";
 import { Activity, ActivityType } from "@/types";
 
 import { Calendar } from "@/components/ui/calendar";
@@ -44,7 +43,11 @@ export function ActivityDashboard() {
 
   const fetchActivities = async (email: string) => {
     try {
-      const userActivities = await getActivities(email);
+      const response = await fetch(`/api/activities?userEmail=${encodeURIComponent(email)}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch activities');
+      }
+      const userActivities: Activity[] = await response.json();
       setActivities(userActivities.sort((a, b) => b.date.localeCompare(a.date)));
     } catch (error) {
       console.error("Failed to fetch activities:", error);

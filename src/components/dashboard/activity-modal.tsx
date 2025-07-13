@@ -13,7 +13,6 @@ import { Activity, ActivityType } from "@/types";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { addActivity } from "@/lib/db";
 
 interface ActivityModalProps {
   isOpen: boolean;
@@ -59,9 +58,17 @@ export function ActivityModal({ isOpen, onClose, onSave, date, userEmail }: Acti
     };
 
     try {
-      const newId = await addActivity(newActivityData);
+      const response = await fetch('/api/activities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newActivityData),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to add activity');
+      }
+      const result = await response.json();
       toast.success("Activité enregistrée !");
-      onSave({ ...newActivityData, id: newId as number });
+      onSave({ ...newActivityData, id: result.id as number });
     } catch (error) {
       toast.error("Erreur lors de l'enregistrement de l'activité.");
       console.error(error);
