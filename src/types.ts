@@ -8,9 +8,12 @@ export interface Activity {
   duration: number; // in minutes
 }
 
+export type UserRole = "admin" | "user";
+
 export interface User {
   id?: number; // auto-incrementing primary key
   email: string; // unique
   name: string;
   password: string; // In a real app, this would be a hash
+  role: UserRole;
 }

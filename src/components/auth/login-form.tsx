@@ -28,6 +28,7 @@ export function LoginForm() {
     if (user && user.password === password) {
       toast.success("Connexion réussie ! Redirection...");
       localStorage.setItem("loggedInUser", user.email);
+      localStorage.setItem("userRole", user.role);
       router.push('/dashboard');
     } else {
       toast.error("Nom d'utilisateur ou mot de passe incorrect.");

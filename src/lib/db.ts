@@ -14,6 +14,7 @@ function openDB(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(USERS_STORE)) {
         const userStore = db.createObjectStore(USERS_STORE, { keyPath: "id", autoIncrement: true });
         userStore.createIndex("email", "email", { unique: true });
+        userStore.createIndex("name", "name", { unique: true });
       }
       if (!db.objectStoreNames.contains(ACTIVITIES_STORE)) {
         const activityStore = db.createObjectStore(ACTIVITIES_STORE, { keyPath: "id", autoIncrement: true });
@@ -26,18 +27,24 @@ function openDB(): Promise<IDBDatabase> {
       
       const transaction = db.transaction(USERS_STORE, "readwrite");
       const store = transaction.objectStore(USERS_STORE);
-      const countRequest = store.count();
+      const getAllRequest = store.getAll();
 
-      countRequest.onsuccess = () => {
-        if (countRequest.result === 0) {
+      getAllRequest.onsuccess = () => {
+        const users = getAllRequest.result as User[];
+        if (users.length === 0) {
           // No users, add the default admin
-          store.add({ email: "admin@example.com", name: "admin", password: "admin" });
+          store.add({ email: "admin@example.com", name: "admin", password: "admin", role: "admin" });
+        } else {
+          const adminUser = users.find(u => u.name === 'admin');
+          if (adminUser && !adminUser.role) {
+            // Admin exists but has no role, update it
+            adminUser.role = 'admin';
+            store.put(adminUser);
+          }
         }
       };
       
       transaction.oncomplete = () => {
-        // The transaction (either just counting, or counting and adding) is complete.
-        // Now it's safe to resolve.
         resolve(db);
       };
 
@@ -71,6 +78,33 @@ export async function getUsers(): Promise<User[]> {
 export async function getUserByName(name: string): Promise<User | undefined> {
     const users = await getUsers();
     return users.find(user => user.name === name);
+}
+
+export async function addUser(user: Omit<User, 'id'>): Promise<IDBValidKey> {
+  const store = await getStore(USERS_STORE, "readwrite");
+  return new Promise((resolve, reject) => {
+    const request = store.add(user);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function updateUser(user: User): Promise<IDBValidKey> {
+  const store = await getStore(USERS_STORE, "readwrite");
+  return new Promise((resolve, reject) => {
+    const request = store.put(user);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function deleteUser(userId: number): Promise<void> {
+  const store = await getStore(USERS_STORE, "readwrite");
+  return new Promise((resolve, reject) => {
+    const request = store.delete(userId);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
 }
 
 // Activity Functions

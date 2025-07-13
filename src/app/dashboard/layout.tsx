@@ -1,11 +1,13 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Nav } from "@/components/dashboard/nav";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Calendar, LogOut, Menu } from "lucide-react";
+import { Calendar, LogOut, Menu, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { UserRole } from "@/types";
 
 export default function DashboardLayout({
   children,
@@ -14,15 +16,26 @@ export default function DashboardLayout({
 }) {
   const isMobile = useIsMobile();
   const router = useRouter();
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
+
+  useEffect(() => {
+    const role = localStorage.getItem("userRole") as UserRole | null;
+    setUserRole(role);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
+    localStorage.removeItem("userRole");
     router.push("/login");
   };
 
   const navLinks = [
     { href: "/dashboard", label: "Calendrier", icon: Calendar },
   ];
+
+  if (userRole === 'admin') {
+    navLinks.push({ href: "/dashboard/users", label: "Utilisateurs", icon: Users });
+  }
 
   if (isMobile) {
     return (
