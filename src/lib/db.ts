@@ -1,4 +1,5 @@
 import { Activity, User } from "@/types";
+import { hashPassword } from "./auth";
 
 const DB_NAME = "ActivityTrackerDB";
 const DB_VERSION = 5;
@@ -23,16 +24,14 @@ function getDbInstance(): Promise<IDBDatabase> {
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
 
-      // Ne crée le magasin Users que s'il n'existe pas
       if (!db.objectStoreNames.contains(USERS_STORE)) {
         const userStore = db.createObjectStore(USERS_STORE, { keyPath: "id", autoIncrement: true });
         userStore.createIndex("email", "email", { unique: true });
         userStore.createIndex("name", "name", { unique: true });
-        // Ajoute l'utilisateur admin uniquement lors de la création initiale
-        userStore.add({ email: "admin@example.com", name: "admin", password: "admin", role: "admin" });
+        // Hash the admin password on creation
+        userStore.add({ email: "admin@example.com", name: "admin", password: hashPassword("admin"), role: "admin" });
       }
 
-      // Ne crée le magasin Activities que s'il n'existe pas
       if (!db.objectStoreNames.contains(ACTIVITIES_STORE)) {
         const activityStore = db.createObjectStore(ACTIVITIES_STORE, { keyPath: "id", autoIncrement: true });
         activityStore.createIndex("userEmail_date", ["userEmail", "date"], { unique: false });
@@ -52,7 +51,6 @@ async function getStore(storeName: string, mode: IDBTransactionMode) {
   return db.transaction(storeName, mode).objectStore(storeName);
 }
 
-// --- Promise Wrapper ---
 function promisifyRequest<T>(request: IDBRequest<T>): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     request.onsuccess = () => resolve(request.result);
@@ -60,7 +58,6 @@ function promisifyRequest<T>(request: IDBRequest<T>): Promise<T> {
   });
 }
 
-// --- User Functions ---
 export async function getUsers(): Promise<User[]> {
   const store = await getStore(USERS_STORE, "readonly");
   return promisifyRequest(store.getAll());
@@ -74,12 +71,37 @@ export async function getUserByName(name: string): Promise<User | undefined> {
 
 export async function addUser(user: Omit<User, 'id'>): Promise<IDBValidKey> {
   const store = await getStore(USERS_STORE, "readwrite");
-  return promisifyRequest(store.add(user));
+  const userToStore = {
+    ...user,
+    password: hashPassword(user.password),
+  };
+  return promisifyRequest(store.add(userToStore));
 }
 
 export async function updateUser(user: User): Promise<IDBValidKey> {
-  const store = await getStore(USERS_STORE, "readwrite");
-  return promisifyRequest(store.put(user));
+    const db = await getDbInstance();
+    const transaction = db.transaction(USERS_STORE, "readwrite");
+    const store = transaction.objectStore(USERS_STORE);
+
+    const existingUser = await promisifyRequest<User | undefined>(store.get(user.id!));
+
+    if (!existingUser) {
+        throw new Error("User not found");
+    }
+
+    const userToUpdate: User = {
+        ...existingUser,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+    };
+
+    // Only hash and update password if a new one is provided
+    if (user.password) {
+        userToUpdate.password = hashPassword(user.password);
+    }
+
+    return promisifyRequest(store.put(userToUpdate));
 }
 
 export async function deleteUser(userId: number): Promise<void> {
@@ -91,7 +113,6 @@ export async function deleteUser(userId: number): Promise<void> {
   });
 }
 
-// --- Activity Functions ---
 export async function getActivities(userEmail: string): Promise<Activity[]> {
   const store = await getStore(ACTIVITIES_STORE, "readonly");
   const index = store.index("userEmail_date");

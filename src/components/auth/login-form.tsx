@@ -2,23 +2,35 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { getUserByName } from "@/lib/db";
 import { LogIn } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { comparePassword } from "@/lib/auth";
+
+const formSchema = z.object({
+  username: z.string().min(1, "Le nom d'utilisateur est requis."),
+  password: z.string().min(1, "Le mot de passe est requis."),
+});
 
 export function LoginForm() {
-  const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("admin");
   const router = useRouter();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      username: "admin",
+      password: "admin",
+    },
+  });
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const user = await getUserByName(username);
+  const handleLogin = async (values: z.infer<typeof formSchema>) => {
+    const user = await getUserByName(values.username);
 
-    if (user && user.password === password) {
+    if (user && comparePassword(values.password, user.password)) {
       toast.success("Connexion réussie ! Redirection...");
       localStorage.setItem("loggedInUser", user.email);
       localStorage.setItem("userRole", user.role);
@@ -36,35 +48,40 @@ export function LoginForm() {
           Accédez à votre tableau de bord.
         </p>
       </div>
-      <form onSubmit={handleLogin} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="username">Nom d'utilisateur</Label>
-          <Input
-            id="username"
-            type="text"
-            placeholder="admin"
-            required
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="h-12 text-base"
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nom d'utilisateur</FormLabel>
+                <FormControl>
+                  <Input placeholder="admin" {...field} className="h-12 text-base" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Mot de passe</Label>
-          <Input 
-            id="password" 
-            type="password" 
-            required 
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="h-12 text-base"
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mot de passe</FormLabel>
+                <FormControl>
+                  <Input type="password" {...field} className="h-12 text-base" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        <Button className="w-full text-lg py-6 group" type="submit">
-          Se connecter
-          <LogIn className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
-        </Button>
-      </form>
+          <Button className="w-full text-lg py-6 group" type="submit" disabled={form.formState.isSubmitting}>
+            Se connecter
+            <LogIn className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
+          </Button>
+        </form>
+      </Form>
     </div>
   );
 }

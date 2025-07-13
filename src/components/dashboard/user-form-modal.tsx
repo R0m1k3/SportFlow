@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { User, UserRole } from "@/types";
 import { addUser, updateUser } from "@/lib/db";
 import { toast } from "sonner";
@@ -18,60 +21,57 @@ interface UserFormModalProps {
 }
 
 export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalProps) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("user");
   const isEditing = !!user;
+
+  const formSchema = z.object({
+    name: z.string().min(1, "Le nom est requis."),
+    email: z.string().email("L'email n'est pas valide."),
+    password: z.string().optional(),
+    role: z.enum(["user", "admin"]),
+  });
+
+  const editSchema = formSchema.extend({
+    password: z.string().min(6, "Le mot de passe doit faire au moins 6 caractères.").optional().or(z.literal('')),
+  });
+
+  const createSchema = formSchema.extend({
+    password: z.string().min(6, "Le mot de passe doit faire au moins 6 caractères."),
+  });
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(isEditing ? editSchema : createSchema),
+    defaultValues: { name: "", email: "", password: "", role: "user" },
+  });
 
   useEffect(() => {
     if (isOpen) {
       if (user) {
-        setName(user.name);
-        setEmail(user.email);
-        setRole(user.role);
-        setPassword(""); // Don't pre-fill password for security
+        form.reset({ name: user.name, email: user.email, role: user.role, password: "" });
       } else {
-        setName("");
-        setEmail("");
-        setPassword("");
-        setRole("user");
+        form.reset({ name: "", email: "", password: "", role: "user" });
       }
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, form]);
 
-  const handleSave = async () => {
-    if (!name || !email || (!isEditing && !password)) {
-      toast.error("Veuillez remplir tous les champs obligatoires.");
-      return;
-    }
-
+  const handleSave = async (values: z.infer<typeof formSchema>) => {
     try {
       if (isEditing && user) {
-        const updatedUserData: User = {
-          ...user,
-          name,
-          email,
-          role,
-        };
-        if (password) {
-          updatedUserData.password = password;
-        }
+        const updatedUserData: User = { ...user, ...values };
         await updateUser(updatedUserData);
         toast.success("Utilisateur mis à jour avec succès.");
       } else {
         const newUserData: Omit<User, 'id'> = {
-          name,
-          email,
-          password,
-          role,
+          name: values.name,
+          email: values.email,
+          password: values.password!, // Password is required by createSchema
+          role: values.role as UserRole,
         };
         await addUser(newUserData);
         toast.success("Utilisateur ajouté avec succès.");
       }
       onSave();
     } catch (error) {
-      toast.error("Une erreur est survenue.");
+      toast.error("Une erreur est survenue. L'email ou le nom est peut-être déjà utilisé.");
       console.error(error);
     }
   };
@@ -79,42 +79,56 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{isEditing ? "Modifier l'utilisateur" : "Ajouter un utilisateur"}</DialogTitle>
-          <DialogDescription>
-            {isEditing ? "Modifiez les informations ci-dessous." : "Remplissez les informations pour créer un nouvel utilisateur."}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">Nom</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="email" className="text-right">Email</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-3" />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="password" className="text-right">Mot de passe</Label>
-            <Input id="password" type="password" placeholder={isEditing ? "Laisser vide pour ne pas changer" : ""} value={password} onChange={(e) => setPassword(e.target.value)} className="col-span-3" />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="role" className="text-right">Rôle</Label>
-            <Select value={role} onValueChange={(value: UserRole) => setRole(value)}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="user">Utilisateur</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
-          <Button type="submit" onClick={handleSave}>Enregistrer</Button>
-        </DialogFooter>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSave)}>
+            <DialogHeader>
+              <DialogTitle>{isEditing ? "Modifier l'utilisateur" : "Ajouter un utilisateur"}</DialogTitle>
+              <DialogDescription>
+                {isEditing ? "Modifiez les informations ci-dessous." : "Remplissez les informations pour créer un nouvel utilisateur."}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <FormField control={form.control} name="name" render={({ field }) => (
+                <FormItem className="grid grid-cols-4 items-center gap-4">
+                  <FormLabel className="text-right">Nom</FormLabel>
+                  <FormControl><Input {...field} className="col-span-3" /></FormControl>
+                  <FormMessage className="col-span-4 text-right" />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="email" render={({ field }) => (
+                <FormItem className="grid grid-cols-4 items-center gap-4">
+                  <FormLabel className="text-right">Email</FormLabel>
+                  <FormControl><Input type="email" {...field} className="col-span-3" /></FormControl>
+                  <FormMessage className="col-span-4 text-right" />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="password" render={({ field }) => (
+                <FormItem className="grid grid-cols-4 items-center gap-4">
+                  <FormLabel className="text-right">Mot de passe</FormLabel>
+                  <FormControl><Input type="password" placeholder={isEditing ? "Laisser vide pour ne pas changer" : ""} {...field} className="col-span-3" /></FormControl>
+                  <FormMessage className="col-span-4 text-right" />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="role" render={({ field }) => (
+                <FormItem className="grid grid-cols-4 items-center gap-4">
+                  <FormLabel className="text-right">Rôle</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl><SelectTrigger className="col-span-3"><SelectValue /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="user">Utilisateur</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage className="col-span-4 text-right" />
+                </FormItem>
+              )} />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
+              <Button type="submit" disabled={form.formState.isSubmitting}>Enregistrer</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

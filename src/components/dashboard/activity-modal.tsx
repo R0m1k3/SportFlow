@@ -1,24 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Activity, ActivityType } from "@/types";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -33,30 +23,35 @@ interface ActivityModalProps {
   userEmail: string;
 }
 
-const activityOptions: ActivityType[] = ["vélo", "musculation", "fitness", "basket"];
+const activityOptions: [ActivityType, ...ActivityType[]] = ["vélo", "musculation", "fitness", "basket"];
+
+const formSchema = z.object({
+  activityType: z.enum(activityOptions, { required_error: "Veuillez sélectionner une activité." }),
+  duration: z.coerce.number({ invalid_type_error: "Veuillez entrer un nombre." }).int().positive("La durée doit être un nombre positif."),
+});
 
 export function ActivityModal({ isOpen, onClose, onSave, date, userEmail }: ActivityModalProps) {
-  const [activityType, setActivityType] = useState<ActivityType | undefined>();
-  const [duration, setDuration] = useState("");
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+  });
 
   useEffect(() => {
     if (!isOpen) {
-      setActivityType(undefined);
-      setDuration("");
+      form.reset();
     }
-  }, [isOpen]);
+  }, [isOpen, form]);
 
-  const handleSave = async () => {
-    if (!activityType || !duration || !date || parseInt(duration, 10) <= 0) {
-      toast.error("Veuillez remplir tous les champs avec des valeurs valides.");
+  const handleSave = async (values: z.infer<typeof formSchema>) => {
+    if (!date) {
+      toast.error("Aucune date sélectionnée.");
       return;
     }
 
     const newActivityData: Omit<Activity, "id"> = {
       userEmail,
       date: format(date, "yyyy-MM-dd"),
-      type: activityType,
-      duration: parseInt(duration, 10),
+      type: values.activityType,
+      duration: values.duration,
     };
 
     try {
@@ -72,51 +67,68 @@ export function ActivityModal({ isOpen, onClose, onSave, date, userEmail }: Acti
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Ajouter une activité</DialogTitle>
-          {date && (
-            <DialogDescription>
-              Pour le {format(date, "d MMMM yyyy", { locale: fr })}.
-            </DialogDescription>
-          )}
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="activity-type" className="text-right">
-              Activité
-            </Label>
-            <Select onValueChange={(value: ActivityType) => setActivityType(value)}>
-              <SelectTrigger className="col-span-3" id="activity-type">
-                <SelectValue placeholder="Sélectionner" />
-              </SelectTrigger>
-              <SelectContent>
-                {activityOptions.map(option => (
-                  <SelectItem key={option} value={option}>
-                    {option.charAt(0).toUpperCase() + option.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="duration" className="text-right">
-              Durée (min)
-            </Label>
-            <Input
-              id="duration"
-              type="number"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              className="col-span-3"
-              placeholder="Ex: 60"
-              min="1"
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
-          <Button type="submit" onClick={handleSave}>Enregistrer</Button>
-        </DialogFooter>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSave)}>
+            <DialogHeader>
+              <DialogTitle>Ajouter une activité</DialogTitle>
+              {date && (
+                <DialogDescription>
+                  Pour le {format(date, "d MMMM yyyy", { locale: fr })}.
+                </DialogDescription>
+              )}
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <FormField
+                control={form.control}
+                name="activityType"
+                render={({ field }) => (
+                  <FormItem className="grid grid-cols-4 items-center gap-4">
+                    <FormLabel className="text-right">Activité</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="col-span-3" id="activity-type">
+                          <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {activityOptions.map(option => (
+                          <SelectItem key={option} value={option}>
+                            {option.charAt(0).toUpperCase() + option.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="col-span-4 text-right" />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="duration"
+                render={({ field }) => (
+                  <FormItem className="grid grid-cols-4 items-center gap-4">
+                    <FormLabel htmlFor="duration" className="text-right">Durée (min)</FormLabel>
+                    <FormControl>
+                      <Input
+                        id="duration"
+                        type="number"
+                        placeholder="Ex: 60"
+                        min="1"
+                        {...field}
+                        className="col-span-3"
+                      />
+                    </FormControl>
+                    <FormMessage className="col-span-4 text-right" />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
+              <Button type="submit" disabled={form.formState.isSubmitting}>Enregistrer</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
