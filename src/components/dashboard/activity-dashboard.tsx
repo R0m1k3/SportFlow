@@ -30,7 +30,10 @@ export function ActivityDashboard() {
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [lastClick, setLastClick] = useState<{ time: number; day: Date } | null>(null);
   const router = useRouter();
+
+  const DOUBLE_CLICK_DELAY = 300; // ms
 
   useEffect(() => {
     const email = localStorage.getItem("loggedInUser");
@@ -53,8 +56,17 @@ export function ActivityDashboard() {
   };
 
   const handleDayClick = (day: Date) => {
-    setSelectedDate(day);
-    setIsModalOpen(true);
+    const now = new Date().getTime();
+
+    if (lastClick && (now - lastClick.time < DOUBLE_CLICK_DELAY) && day.getTime() === lastClick.day.getTime()) {
+      // Double click
+      setLastClick(null); // Reset after double click
+      setSelectedDate(day);
+      setIsModalOpen(true);
+    } else {
+      // Single click
+      setLastClick({ time: now, day });
+    }
   };
 
   const handleSaveActivity = (newActivity: Activity) => {
@@ -90,7 +102,7 @@ export function ActivityDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Calendrier des activités</CardTitle>
-            <CardDescription>Cliquez sur une date pour ajouter une activité.</CardDescription>
+            <CardDescription>Double-cliquez sur une date pour ajouter une activité.</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <Calendar
