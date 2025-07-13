@@ -94,7 +94,7 @@ export function ActivityDashboard() {
             <CardTitle>Calendrier des activités</CardTitle>
             <CardDescription>Cliquez sur une date pour ajouter une activité.</CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center">
+          <CardContent className="p-0">
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -103,7 +103,12 @@ export function ActivityDashboard() {
               onMonthChange={setCurrentMonth}
               components={{ DayContent: DayContentWithActivity }}
               locale={fr}
-              className="p-0"
+              className="w-full"
+              classNames={{
+                head_cell: "flex-1",
+                cell: "flex-1 h-16",
+                day: "w-full h-16",
+              }}
             />
           </CardContent>
         </Card>
