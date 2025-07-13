@@ -55,7 +55,10 @@ export function ActivityDashboard() {
     }
   };
 
-  const handleDayClick = (day: Date) => {
+  const handleDayClick = (day: Date | undefined) => {
+    if (!day) {
+      return;
+    }
     const now = new Date().getTime();
 
     if (lastClick && (now - lastClick.time < DOUBLE_CLICK_DELAY) && day.getTime() === lastClick.day.getTime()) {
