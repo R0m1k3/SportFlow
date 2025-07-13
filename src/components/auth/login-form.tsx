@@ -9,7 +9,6 @@ import { LogIn } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { comparePassword } from "@/lib/auth";
 import { User } from "@/types"; // Import the User type
 
 const formSchema = z.object({
@@ -29,29 +28,26 @@ export function LoginForm() {
 
   const handleLogin = async (values: z.infer<typeof formSchema>) => {
     try {
-      console.log("Attempting to fetch users from /api/users...");
-      const response = await fetch('/api/users');
+      console.log("Attempting to log in with username:", values.username);
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Failed to fetch users. Response status:", response.status, "Response text:", errorText);
-        throw new Error('Failed to fetch users');
-      }
-      
-      const users: User[] = await response.json();
-      console.log("Users fetched successfully:", users);
+      const data = await response.json();
 
-      const user = users.find(u => u.name === values.username || u.email === values.username);
-      console.log("Found user:", user ? user.name : "None");
-
-      if (user && comparePassword(values.password, user.password)) {
+      if (response.ok) {
+        const user: User = data.user;
         toast.success("Connexion réussie ! Redirection...");
         localStorage.setItem("loggedInUser", user.email);
         localStorage.setItem("userRole", user.role);
         router.push('/dashboard');
       } else {
-        toast.error("Nom d'utilisateur ou mot de passe incorrect.");
-        console.log("Login failed: Incorrect username/password or user not found.");
+        toast.error(data.message || "Nom d'utilisateur ou mot de passe incorrect.");
+        console.log("Login failed:", data.message);
       }
     } catch (error) {
       console.error("Login error:", error);
