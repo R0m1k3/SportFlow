@@ -1,7 +1,7 @@
 import { Activity, User } from "@/types";
 
 const DB_NAME = "ActivityTrackerDB";
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Version incrémentée pour forcer la mise à jour du schéma
 const USERS_STORE = "users";
 const ACTIVITIES_STORE = "activities";
 
@@ -11,11 +11,22 @@ function openDB(): Promise<IDBDatabase> {
 
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
+      const transaction = (event.target as IDBOpenDBRequest).transaction;
+
+      // Créer le store des utilisateurs s'il n'existe pas
       if (!db.objectStoreNames.contains(USERS_STORE)) {
         const userStore = db.createObjectStore(USERS_STORE, { keyPath: "id", autoIncrement: true });
         userStore.createIndex("email", "email", { unique: true });
         userStore.createIndex("name", "name", { unique: true });
+        
+        // Ajouter l'utilisateur admin uniquement lors de la création du store
+        if (transaction) {
+          const store = transaction.objectStore(USERS_STORE);
+          store.add({ email: "admin@example.com", name: "admin", password: "admin", role: "admin" });
+        }
       }
+
+      // Créer le store des activités s'il n'existe pas
       if (!db.objectStoreNames.contains(ACTIVITIES_STORE)) {
         const activityStore = db.createObjectStore(ACTIVITIES_STORE, { keyPath: "id", autoIncrement: true });
         activityStore.createIndex("userEmail_date", ["userEmail", "date"], { unique: false });
@@ -23,37 +34,11 @@ function openDB(): Promise<IDBDatabase> {
     };
 
     request.onsuccess = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      
-      const transaction = db.transaction(USERS_STORE, "readwrite");
-      const store = transaction.objectStore(USERS_STORE);
-      const getAllRequest = store.getAll();
-
-      getAllRequest.onsuccess = () => {
-        const users = getAllRequest.result as User[];
-        if (users.length === 0) {
-          // No users, add the default admin
-          store.add({ email: "admin@example.com", name: "admin", password: "admin", role: "admin" });
-        } else {
-          const adminUser = users.find(u => u.name === 'admin');
-          if (adminUser && !adminUser.role) {
-            // Admin exists but has no role, update it
-            adminUser.role = 'admin';
-            store.put(adminUser);
-          }
-        }
-      };
-      
-      transaction.oncomplete = () => {
-        resolve(db);
-      };
-
-      transaction.onerror = (event) => {
-        reject("Database transaction error: " + (event.target as IDBTransaction).error);
-      };
+      resolve((event.target as IDBOpenDBRequest).result);
     };
 
     request.onerror = (event) => {
+      console.error("Database error:", (event.target as IDBOpenDBRequest).error);
       reject("Database error: " + (event.target as IDBOpenDBRequest).error);
     };
   });

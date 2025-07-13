@@ -14,6 +14,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ActivityModal } from "./activity-modal";
 import { MonthlyStats } from "./monthly-stats";
+import { toast } from "sonner";
 
 const activityIcons: Record<ActivityType, React.ReactNode> = {
   vélo: <Bike className="h-5 w-5" />,
@@ -41,8 +42,13 @@ export function ActivityDashboard() {
   }, [router]);
 
   const fetchActivities = async (email: string) => {
-    const userActivities = await getActivities(email);
-    setActivities(userActivities);
+    try {
+      const userActivities = await getActivities(email);
+      setActivities(userActivities);
+    } catch (error) {
+      console.error("Failed to fetch activities:", error);
+      toast.error("Impossible de charger les activités.");
+    }
   };
 
   const handleDayClick = (day: Date | undefined) => {
