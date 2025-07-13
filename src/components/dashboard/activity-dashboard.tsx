@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { Bike, Dumbbell, HeartPulse, Dribbble } from "lucide-react";
 import { format, startOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
+import { DayContentProps } from "react-day-picker";
+import { cn } from "@/lib/utils";
 
 import { getActivities } from "@/lib/db";
 import { Activity, ActivityType } from "@/types";
 
-import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ActivityModal } from "./activity-modal";
@@ -69,13 +70,18 @@ export function ActivityDashboard() {
     return <p>Redirection...</p>;
   }
 
-  const DayContentWithDot = (props: { date: Date }) => {
+  const DayContentWithActivity = (props: DayContentProps) => {
     const formattedDay = format(props.date, "yyyy-MM-dd");
     const hasActivity = activities.some(act => act.date === formattedDay);
+    
     return (
-      <div className="relative h-full w-full flex items-center justify-center">
-        <span>{format(props.date, "d")}</span>
-        {hasActivity && <div className="absolute bottom-1 h-1.5 w-1.5 rounded-full bg-primary" />}
+      <div
+        className={cn(
+          "h-full w-full flex items-center justify-center rounded-md",
+          hasActivity && !props.activeModifiers.selected && "bg-green-100 dark:bg-green-900"
+        )}
+      >
+        {format(props.date, "d")}
       </div>
     );
   };
@@ -95,7 +101,7 @@ export function ActivityDashboard() {
               onSelect={handleDayClick}
               month={currentMonth}
               onMonthChange={setCurrentMonth}
-              components={{ DayContent: DayContentWithDot }}
+              components={{ DayContent: DayContentWithActivity }}
               locale={fr}
               className="p-0"
             />
