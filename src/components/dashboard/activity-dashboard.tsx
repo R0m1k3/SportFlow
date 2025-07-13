@@ -52,11 +52,9 @@ export function ActivityDashboard() {
     }
   };
 
-  const handleDayClick = (day: Date | undefined) => {
-    if (day) {
-      setSelectedDate(day);
-      setIsModalOpen(true);
-    }
+  const handleDayClick = (day: Date) => {
+    setSelectedDate(day);
+    setIsModalOpen(true);
   };
 
   const handleSaveActivity = (newActivity: Activity) => {
@@ -98,7 +96,7 @@ export function ActivityDashboard() {
             <Calendar
               mode="single"
               selected={selectedDate}
-              onSelect={handleDayClick}
+              onDayClick={handleDayClick}
               month={currentMonth}
               onMonthChange={setCurrentMonth}
               components={{ DayContent: DayContentWithActivity }}
