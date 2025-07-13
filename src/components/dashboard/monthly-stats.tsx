@@ -17,14 +17,13 @@ const activityIcons: Record<ActivityType, React.ReactNode> = {
 export function MonthlyStats({ activities, month }: MonthlyStatsProps) {
   const monthlyActivities = activities.filter(
     (act) => {
-      // Parse YYYY-MM-DD string to avoid timezone issues.
-      // Using YYYY/MM/DD format is more robust for the Date constructor.
-      const activityDate = new Date(act.date.replace(/-/g, '/'));
-      return activityDate.getMonth() === month.getMonth() && activityDate.getFullYear() === month.getFullYear()
+      // Robust date parsing to avoid timezone issues.
+      // act.date is "YYYY-MM-DD"
+      const [year, monthNum] = act.date.split('-').map(Number);
+      return year === month.getFullYear() && (monthNum - 1) === month.getMonth();
     }
   );
 
-  const totalSessions = monthlyActivities.length;
   const totalDuration = monthlyActivities.reduce((sum, act) => sum + act.duration, 0);
   
   const statsByType = monthlyActivities.reduce((acc, act) => {
