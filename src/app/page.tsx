@@ -1,12 +1,35 @@
 import { MadeWithDyad } from "@/components/made-with-dyad";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Activity } from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-1 items-center sm:items-start">
-        <h1>Blank page</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50 dark:bg-background">
+      <main className="flex flex-col items-center text-center">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <div className="flex justify-center mb-4">
+              <Activity className="w-12 h-12 text-primary" />
+            </div>
+            <CardTitle className="text-3xl font-bold">Suivi d'Activité</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
+              Bienvenue sur votre application de suivi d'activités sportives. Connectez-vous pour commencer.
+            </p>
+            <Link href="/login" passHref>
+              <Button size="lg" className="w-full">
+                Aller à la page de connexion
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </main>
-      <MadeWithDyad />
+      <div className="absolute bottom-4">
+        <MadeWithDyad />
+      </div>
     </div>
   );
 }
