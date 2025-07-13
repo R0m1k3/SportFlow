@@ -33,6 +33,10 @@ const formSchema = z.object({
 export function ActivityModal({ isOpen, onClose, onSave, date, userEmail }: ActivityModalProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      activityType: undefined,
+      duration: "" as any, // Initialize with empty string to make it a controlled component
+    },
   });
 
   useEffect(() => {
@@ -84,7 +88,7 @@ export function ActivityModal({ isOpen, onClose, onSave, date, userEmail }: Acti
                 render={({ field }) => (
                   <FormItem className="grid grid-cols-4 items-center gap-4">
                     <FormLabel className="text-right">Activité</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="col-span-3" id="activity-type">
                           <SelectValue placeholder="Sélectionner" />
