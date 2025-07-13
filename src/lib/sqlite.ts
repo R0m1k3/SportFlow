@@ -51,4 +51,6 @@ if (adminCount['COUNT(*)'] === 0) {
   console.log("Admin user already exists in SQLite database.");
 }
 
+console.log("SQLite database initialization complete. DB object exported.");
+
 export default db;
