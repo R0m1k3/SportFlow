@@ -56,26 +56,18 @@ export function ActivityDashboard() {
   };
 
   const handleDayClick = (day: Date | undefined, modifiers: DayModifiers) => {
-    // The day can be undefined (e.g., when a selected day is clicked again).
-    // Also, ignore clicks on disabled days.
-    if (!day || modifiers.disabled) {
-      return;
-    }
-
-    // Double-check for a valid date object before proceeding.
-    if (!(day instanceof Date) || isNaN(day.getTime())) {
+    // Defensive handler to prevent crashes from invalid data
+    if (!day || !(day instanceof Date) || isNaN(day.getTime()) || !modifiers || modifiers.disabled) {
       return;
     }
 
     const now = new Date().getTime();
 
     if (lastClick && (now - lastClick.time < DOUBLE_CLICK_DELAY) && day.getTime() === lastClick.day.getTime()) {
-      // This is a double click.
-      setLastClick(null); // Reset the click tracker.
+      setLastClick(null);
       setSelectedDate(day);
       setIsModalOpen(true);
     } else {
-      // This is a single click.
       setLastClick({ time: now, day });
     }
   };
@@ -92,6 +84,11 @@ export function ActivityDashboard() {
   }
 
   const DayContentWithActivity = (props: DayContentProps) => {
+    // Bulletproof guard to prevent render crash from invalid dates
+    if (!props.date || !(props.date instanceof Date) || isNaN(props.date.getTime())) {
+      return <div />;
+    }
+    
     const formattedDay = format(props.date, "yyyy-MM-dd");
     const hasActivity = activities.some(act => act.date === formattedDay);
     
