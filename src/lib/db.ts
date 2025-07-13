@@ -68,43 +68,6 @@ export async function getUsers(): Promise<User[]> {
   });
 }
 
-export async function addUser(user: Omit<User, 'id'>): Promise<IDBValidKey> {
-  const store = await getStore(USERS_STORE, "readwrite");
-  return new Promise((resolve, reject) => {
-    const request = store.add(user);
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-export async function updateUser(user: User): Promise<IDBValidKey> {
-  const store = await getStore(USERS_STORE, "readwrite");
-  return new Promise((resolve, reject) => {
-    const request = store.put(user);
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-export async function deleteUser(id: number): Promise<void> {
-  const store = await getStore(USERS_STORE, "readwrite");
-  return new Promise((resolve, reject) => {
-    const request = store.delete(id);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-  });
-}
-
-export async function getUserByEmail(email: string): Promise<User | undefined> {
-    const store = await getStore(USERS_STORE, "readonly");
-    const index = store.index("email");
-    return new Promise((resolve, reject) => {
-        const request = index.get(email);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-    });
-}
-
 export async function getUserByName(name: string): Promise<User | undefined> {
     const users = await getUsers();
     return users.find(user => user.name === name);

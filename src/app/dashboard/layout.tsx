@@ -3,7 +3,7 @@
 import { Nav } from "@/components/dashboard/nav";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Calendar, LogOut, Menu, Users } from "lucide-react";
+import { Calendar, LogOut, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
@@ -22,7 +22,6 @@ export default function DashboardLayout({
 
   const navLinks = [
     { href: "/dashboard", label: "Calendrier", icon: Calendar },
-    { href: "/dashboard/users", label: "Utilisateurs", icon: Users },
   ];
 
   if (isMobile) {
