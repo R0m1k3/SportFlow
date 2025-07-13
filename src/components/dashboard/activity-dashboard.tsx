@@ -89,7 +89,7 @@ export function ActivityDashboard() {
       return <>{format(props.date, "d")}</>;
     }
     const dayActivities = activities.filter(
-      (act) => format(new Date(act.date), "yyyy-MM-dd") === format(props.date, "yyyy-MM-dd")
+      (act) => act.date === format(props.date, "yyyy-MM-dd")
     );
     return (
       <div className="flex flex-col h-full w-full text-left p-1 relative">
@@ -110,7 +110,7 @@ export function ActivityDashboard() {
 
   const MobileDayContent = (props: { date: Date; displayMonth: Date }) => {
     const dayActivities = activities.filter(
-      (act) => format(new Date(act.date), "yyyy-MM-dd") === format(props.date, "yyyy-MM-dd")
+      (act) => act.date === format(props.date, "yyyy-MM-dd")
     );
     return (
       <>
@@ -222,7 +222,7 @@ export function ActivityDashboard() {
           <CardContent>
             {activities.length > 0 ? (
               <div className="space-y-3 h-64 overflow-y-auto pr-2">
-                {activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((act) => (
+                {activities.sort((a, b) => b.date.localeCompare(a.date)).map((act) => (
                   <div key={act.id} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50">
                     <div className="p-2 bg-background rounded-full shadow-sm">
                       {activityIcons[act.type]}
@@ -230,7 +230,7 @@ export function ActivityDashboard() {
                     <div className="flex-grow">
                       <p className="font-semibold capitalize">{act.type}</p>
                       <p className="text-sm text-muted-foreground">
-                        {format(new Date(act.date), "d MMMM yyyy", { locale: fr })}
+                        {format(new Date(act.date.replace(/-/g, '/')), "d MMMM yyyy", { locale: fr })}
                       </p>
                     </div>
                     <div className="text-right">

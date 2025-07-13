@@ -16,7 +16,12 @@ const activityIcons: Record<ActivityType, React.ReactNode> = {
 
 export function MonthlyStats({ activities, month }: MonthlyStatsProps) {
   const monthlyActivities = activities.filter(
-    (act) => new Date(act.date).getMonth() === month.getMonth() && new Date(act.date).getFullYear() === month.getFullYear()
+    (act) => {
+      // Parse YYYY-MM-DD string to avoid timezone issues.
+      // Using YYYY/MM/DD format is more robust for the Date constructor.
+      const activityDate = new Date(act.date.replace(/-/g, '/'));
+      return activityDate.getMonth() === month.getMonth() && activityDate.getFullYear() === month.getFullYear()
+    }
   );
 
   const totalSessions = monthlyActivities.length;
