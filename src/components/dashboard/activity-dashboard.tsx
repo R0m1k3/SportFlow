@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Bike, Dumbbell, HeartPulse, Dribbble } from "lucide-react";
 import { format, startOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
-import { DayContentProps } from "react-day-picker";
+import { DayContentProps, DayModifiers } from "react-day-picker";
 import { cn } from "@/lib/utils";
 
 import { getActivities } from "@/lib/db";
@@ -55,10 +55,12 @@ export function ActivityDashboard() {
     }
   };
 
-  const handleDayClick = (day: Date | undefined) => {
-    if (!day) {
+  const handleDayClick = (day: Date, modifiers: DayModifiers) => {
+    // Prevent action on invalid or disabled days
+    if (modifiers.disabled || !(day instanceof Date) || isNaN(day.getTime())) {
       return;
     }
+
     const now = new Date().getTime();
 
     if (lastClick && (now - lastClick.time < DOUBLE_CLICK_DELAY) && day.getTime() === lastClick.day.getTime()) {
