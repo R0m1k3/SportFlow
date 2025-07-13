@@ -5,6 +5,7 @@ import { User } from '@/types';
 
 export async function POST(request: Request) {
   console.log("API: /api/auth/login POST request received.");
+  let stmt;
 
   try {
     console.log("API: Parsing request body...");
@@ -17,8 +18,9 @@ export async function POST(request: Request) {
     }
 
     console.log("API: Attempting to find user in DB...");
-    // Use await with the new dbWrapper
-    const user = await db.prepare("SELECT * FROM users WHERE email = ? OR name = ?").get(username, username) as User;
+    stmt = await db.prepare("SELECT * FROM users WHERE email = ? OR name = ?");
+    const user = stmt.get(username, username) as User;
+    stmt.finalize(); // Finalize after use
     console.log("API: User lookup complete. User found:", !!user);
 
     if (!user) {
@@ -41,5 +43,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("API: Error during login process:", error);
     return NextResponse.json({ message: "Une erreur est survenue lors de la connexion." }, { status: 500 });
+  } finally {
+    if (stmt) stmt.finalize();
   }
 }
