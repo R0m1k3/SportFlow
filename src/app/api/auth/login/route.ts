@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/sqlite';
+import db from '@/lib/sqlite'; // Import the new dbWrapper
 import { comparePassword } from '@/lib/auth';
 import { User } from '@/types';
 
@@ -17,7 +17,8 @@ export async function POST(request: Request) {
     }
 
     console.log("API: Attempting to find user in DB...");
-    const user = db.prepare("SELECT * FROM users WHERE email = ? OR name = ?").get(username, username) as User;
+    // Use await with the new dbWrapper
+    const user = await db.prepare("SELECT * FROM users WHERE email = ? OR name = ?").get(username, username) as User;
     console.log("API: User lookup complete. User found:", !!user);
 
     if (!user) {

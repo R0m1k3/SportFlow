@@ -5,16 +5,17 @@ import { hashPassword } from './auth';
 
 const dbPath = path.join(process.cwd(), 'data', 'app.db');
 
-// Use InstanceType<typeof Database> for the type of the database instance
 type DbInstance = InstanceType<typeof Database>;
 
-// Use a global variable to store the database instance
-// This ensures the database is only initialized once, even with hot module reloading
+// Use global variables to store the database instance and a queue for serializing access.
+// This ensures the database is only initialized once and accessed sequentially.
 declare global {
   var __db: DbInstance | undefined;
+  var __dbQueue: Promise<any> | undefined;
 }
 
 let db: DbInstance;
+let dbQueue: Promise<any> = Promise.resolve(); // Initialize with a resolved promise
 
 if (!globalThis.__db) {
   try {
@@ -65,6 +66,7 @@ if (!globalThis.__db) {
 
     console.log("SQLite database initialization complete. DB object exported.");
     globalThis.__db = db;
+    globalThis.__dbQueue = dbQueue; // Store the queue globally too
 
   } catch (error) {
     console.error("FATAL ERROR: Failed to initialize SQLite database:", error);
@@ -73,7 +75,35 @@ if (!globalThis.__db) {
   }
 } else {
   db = globalThis.__db;
+  dbQueue = globalThis.__dbQueue || Promise.resolve(); // Retrieve existing queue
   console.log("Reusing existing SQLite database connection.");
 }
 
-export default db;
+// Wrapper function to serialize database access
+const execute = async <T>(fn: (db: DbInstance) => T): Promise<T> => {
+  // Enqueue the operation
+  dbQueue = dbQueue.then(() => {
+    try {
+      return fn(db);
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  });
+  return dbQueue as Promise<T>; // Return the promise for the current operation
+};
+
+// Export an object with methods that use the serialized executor
+const dbWrapper = {
+  prepare: (sql: string) => {
+    // Prepare statement synchronously, but execute operations asynchronously via the queue
+    const stmt = db.prepare(sql);
+    return {
+      run: async (...params: any[]) => execute(() => stmt.run(...params)),
+      get: async (...params: any[]) => execute(() => stmt.get(...params)),
+      all: async (...params: any[]) => execute(() => stmt.all(...params)),
+    };
+  },
+  exec: async (sql: string) => execute(() => db.exec(sql)),
+};
+
+export default dbWrapper;
