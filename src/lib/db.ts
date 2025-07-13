@@ -2,7 +2,7 @@ import { Activity, User } from "@/types";
 import { hashPassword } from "./auth";
 
 const DB_NAME = "ActivityTrackerDB";
-const DB_VERSION = 7; // Version incrémentée pour forcer la mise à jour de la structure
+const DB_VERSION = 8; // Version incrémentée pour forcer la mise à jour de la structure
 const USERS_STORE = "users";
 const ACTIVITIES_STORE = "activities";
 
@@ -23,19 +23,25 @@ function getDbInstance(): Promise<IDBDatabase> {
 
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
+      console.log(`IndexedDB upgrade needed. Old version: ${event.oldVersion}, New version: ${event.newVersion}`);
 
       // Crée les stores uniquement s'ils n'existent pas déjà
       if (!db.objectStoreNames.contains(USERS_STORE)) {
+        console.log(`Creating ${USERS_STORE} object store.`);
         const userStore = db.createObjectStore(USERS_STORE, { keyPath: "id", autoIncrement: true });
         userStore.createIndex("email", "email", { unique: true });
         userStore.createIndex("name", "name", { unique: true });
+      } else {
+        console.log(`${USERS_STORE} object store already exists.`);
       }
 
       if (!db.objectStoreNames.contains(ACTIVITIES_STORE)) {
+        console.log(`Creating ${ACTIVITIES_STORE} object store.`);
         const activityStore = db.createObjectStore(ACTIVITIES_STORE, { keyPath: "id", autoIncrement: true });
         activityStore.createIndex("userEmail_date", ["userEmail", "date"], { unique: false });
+      } else {
+        console.log(`${ACTIVITIES_STORE} object store already exists.`);
       }
-      // L'utilisateur admin ne sera plus ajouté ici, mais dans onsuccess pour s'assurer qu'il n'est ajouté qu'une seule fois.
     };
 
     request.onsuccess = async (event) => {
