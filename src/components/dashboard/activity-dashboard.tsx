@@ -55,21 +55,27 @@ export function ActivityDashboard() {
     }
   };
 
-  const handleDayClick = (day: Date, modifiers: DayModifiers) => {
-    // Prevent action on invalid or disabled days
-    if (modifiers.disabled || !(day instanceof Date) || isNaN(day.getTime())) {
+  const handleDayClick = (day: Date | undefined, modifiers: DayModifiers) => {
+    // The day can be undefined (e.g., when a selected day is clicked again).
+    // Also, ignore clicks on disabled days.
+    if (!day || modifiers.disabled) {
+      return;
+    }
+
+    // Double-check for a valid date object before proceeding.
+    if (!(day instanceof Date) || isNaN(day.getTime())) {
       return;
     }
 
     const now = new Date().getTime();
 
     if (lastClick && (now - lastClick.time < DOUBLE_CLICK_DELAY) && day.getTime() === lastClick.day.getTime()) {
-      // Double click
-      setLastClick(null); // Reset after double click
+      // This is a double click.
+      setLastClick(null); // Reset the click tracker.
       setSelectedDate(day);
       setIsModalOpen(true);
     } else {
-      // Single click
+      // This is a single click.
       setLastClick({ time: now, day });
     }
   };
