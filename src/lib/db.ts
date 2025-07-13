@@ -1,7 +1,7 @@
 import { Activity, User } from "@/types";
 
 const DB_NAME = "ActivityTrackerDB";
-const DB_VERSION = 5; // Version incrémentée pour forcer la mise à jour du schéma
+const DB_VERSION = 5;
 const USERS_STORE = "users";
 const ACTIVITIES_STORE = "activities";
 
@@ -23,24 +23,20 @@ function getDbInstance(): Promise<IDBDatabase> {
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
 
-      // Supprimer les anciens magasins d'objets s'ils existent pour repartir de zéro
-      if (db.objectStoreNames.contains(USERS_STORE)) {
-        db.deleteObjectStore(USERS_STORE);
-      }
-      if (db.objectStoreNames.contains(ACTIVITIES_STORE)) {
-        db.deleteObjectStore(ACTIVITIES_STORE);
+      // Ne crée le magasin Users que s'il n'existe pas
+      if (!db.objectStoreNames.contains(USERS_STORE)) {
+        const userStore = db.createObjectStore(USERS_STORE, { keyPath: "id", autoIncrement: true });
+        userStore.createIndex("email", "email", { unique: true });
+        userStore.createIndex("name", "name", { unique: true });
+        // Ajoute l'utilisateur admin uniquement lors de la création initiale
+        userStore.add({ email: "admin@example.com", name: "admin", password: "admin", role: "admin" });
       }
 
-      // Créer le magasin Users et l'utilisateur admin
-      const userStore = db.createObjectStore(USERS_STORE, { keyPath: "id", autoIncrement: true });
-      userStore.createIndex("email", "email", { unique: true });
-      userStore.createIndex("name", "name", { unique: true });
-      // Insérer les données initiales dans la même transaction de mise à jour
-      userStore.add({ email: "admin@example.com", name: "admin", password: "admin", role: "admin" });
-
-      // Créer le magasin Activities
-      const activityStore = db.createObjectStore(ACTIVITIES_STORE, { keyPath: "id", autoIncrement: true });
-      activityStore.createIndex("userEmail_date", ["userEmail", "date"], { unique: false });
+      // Ne crée le magasin Activities que s'il n'existe pas
+      if (!db.objectStoreNames.contains(ACTIVITIES_STORE)) {
+        const activityStore = db.createObjectStore(ACTIVITIES_STORE, { keyPath: "id", autoIncrement: true });
+        activityStore.createIndex("userEmail_date", ["userEmail", "date"], { unique: false });
+      }
     };
 
     request.onsuccess = (event) => {
