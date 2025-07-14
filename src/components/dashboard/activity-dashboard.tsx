@@ -17,7 +17,7 @@ import { ActivityModal } from "./activity-modal";
 import { MonthlyStats } from "./monthly-stats";
 import { toast } from "sonner";
 
-// Define DayContentProps locally if not exported by react-day-picker
+// Define DayContentProps locally
 interface DayContentProps {
   date: Date;
   displayMonth: Date;
