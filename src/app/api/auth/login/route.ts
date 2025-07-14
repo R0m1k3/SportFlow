@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import db, { WrappedStatement } from '@/lib/sqlite'; // Removed mapRowToUser
+import { readDb } from '@/lib/json-db'; // Ensure correct import path
 import { comparePassword } from '@/lib/auth';
 import { User } from '@/types';
 
 export async function POST(request: Request) {
   console.log("API: /api/auth/login POST request received.");
-  let stmt: WrappedStatement | undefined;
 
   try {
     console.log("API: Parsing request body...");
@@ -18,8 +17,8 @@ export async function POST(request: Request) {
     }
 
     console.log("API: Attempting to find user in DB...");
-    stmt = db.prepare("SELECT * FROM users WHERE email = ? OR name = ?"); // No longer await
-    const user: User | undefined = stmt.get(username, username); // better-sqlite3 returns object or undefined
+    const db = await readDb();
+    const user: User | undefined = db.users.find((u: User) => u.email === username || u.name === username);
     console.log("API: User lookup complete. User found:", !!user);
 
     if (!user) {

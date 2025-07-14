@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     if (isServer) {
       config.externals = [
         ...(config.externals || []), // Preserve existing externals
-        'better-sqlite3', // Mark better-sqlite3 as external
+        // 'better-sqlite3', // Removed better-sqlite3 as it's no longer used
       ];
     }
     return config;

@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
-import db, { WrappedStatement } from '@/lib/sqlite'; // Removed mapRowToActivity
+import { readDb, writeDb } from '@/lib/json-db'; // Ensure correct import path
 import { Activity } from '@/types';
 
 export async function GET(request: Request) {
-  let stmt: WrappedStatement | undefined;
   try {
     const { searchParams } = new URL(request.url);
     const userEmail = searchParams.get('userEmail');
@@ -12,9 +11,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: "User email is required." }, { status: 400 });
     }
 
-    stmt = db.prepare("SELECT * FROM activities WHERE userEmail = ? ORDER BY date DESC"); // No longer await
-    const activities: Activity[] = stmt.all(userEmail); // better-sqlite3 returns objects directly
-    return NextResponse.json(activities);
+    const db = await readDb();
+    const activities: Activity[] = db.activities.filter((act: Activity) => act.userEmail === userEmail);
+    
+    return NextResponse.json(activities.sort((a: Activity, b: Activity) => b.date.localeCompare(a.date)));
   } catch (error) {
     console.error("Error fetching activities:", error);
     return NextResponse.json({ message: "Failed to fetch activities" }, { status: 500 });
@@ -22,12 +22,21 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  let stmt: WrappedStatement | undefined;
   try {
     const { userEmail, date, type, duration } = await request.json();
-    stmt = db.prepare("INSERT INTO activities (userEmail, date, type, duration) VALUES (?, ?, ?, ?)"); // No longer await
-    const info = stmt.run(userEmail, date, type, duration);
-    return NextResponse.json({ id: info.lastInsertRowid, userEmail, date, type, duration }, { status: 201 });
+
+    const db = await readDb();
+    const newActivity: Activity = {
+      id: db.activities.length > 0 ? Math.max(...db.activities.map((a: Activity) => a.id || 0)) + 1 : 1,
+      userEmail,
+      date,
+      type,
+      duration,
+    };
+    db.activities.push(newActivity);
+    await writeDb(db);
+
+    return NextResponse.json(newActivity, { status: 201 });
   } catch (error) {
     console.error("Error adding activity:", error);
     return NextResponse.json({ message: "Failed to add activity" }, { status: 500 });
