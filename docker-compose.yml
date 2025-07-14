@@ -12,6 +12,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000 # Ensure the container runs on port 3000
+    volumes:
+      - ./data:/app/data # Mount a volume for persistent data
     networks:
       - nginx_default
 
