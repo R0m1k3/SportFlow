@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Bike, Dumbbell, HeartPulse, Dribbble } from "lucide-react";
 import { format, startOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
-import { DayContentProps, DayModifiers } from "react-day-picker";
+import { Modifiers } from "react-day-picker"; // Removed DayContentProps
 import { cn } from "@/lib/utils";
 
 import { Activity, ActivityType } from "@/types";
@@ -55,7 +55,7 @@ export function ActivityDashboard() {
     }
   };
 
-  const handleDayClick = (day: Date | undefined, modifiers: DayModifiers) => {
+  const handleDayClick = (day: Date | undefined, modifiers: Modifiers) => { // Corrected type for modifiers
     // Defensive handler to prevent crashes from invalid data
     if (!day || !(day instanceof Date) || isNaN(day.getTime()) || !modifiers || modifiers.disabled) {
       return;
@@ -82,7 +82,9 @@ export function ActivityDashboard() {
     return <p>Redirection...</p>;
   }
 
-  const DayContentWithActivity = (props: DayContentProps) => {
+  // DayContentProps is not directly exported, but the type can be inferred or defined locally if needed.
+  // For now, we'll use a generic React.FC type for simplicity as the props are standard.
+  const DayContentWithActivity: React.FC<{ date: Date; activeModifiers: Modifiers }> = (props) => {
     // Bulletproof guard to prevent render crash from invalid dates
     if (!props.date || !(props.date instanceof Date) || isNaN(props.date.getTime())) {
       return <div />;

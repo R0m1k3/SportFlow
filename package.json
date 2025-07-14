@@ -1,4 +1,13 @@
 {
+  "name": "sincere-manatee-beam",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
     "@radix-ui/react-accordion": "^1.2.11",
@@ -34,6 +43,7 @@
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
+    "input-otp": "^1.2.1",
     "lucide-react": "^0.511.0",
     "mongoose": "^8.16.3",
     "next": "15.3.4",
