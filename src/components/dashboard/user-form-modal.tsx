@@ -56,7 +56,16 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
     try {
       let response;
       if (isEditing && user) {
-        const updatedUserData: User = { _id: user._id, ...values }; // Use _id
+        const updatedUserData: { _id: string; name: string; email: string; role: UserRole; password?: string } = {
+            _id: user._id!, // _id is guaranteed to exist for an existing user
+            name: values.name,
+            email: values.email,
+            role: values.role as UserRole,
+        };
+        if (values.password && values.password !== "") {
+            updatedUserData.password = values.password;
+        }
+
         response = await fetch('/api/users', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },

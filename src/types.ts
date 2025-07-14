@@ -1,7 +1,7 @@
 export type ActivityType = "vélo" | "musculation" | "fitness" | "basket";
 
 export interface Activity {
-  _id?: string; // MongoDB's default ID is a string
+  _id?: string; // Re-added for frontend compatibility with API responses
   userEmail: string;
   date: string; // ISO String YYYY-MM-DD
   type: ActivityType;
@@ -11,7 +11,7 @@ export interface Activity {
 export type UserRole = "admin" | "user";
 
 export interface User {
-  _id?: string; // MongoDB's default ID is a string
+  _id?: string; // Re-added for frontend compatibility with API responses
   email: string; // unique
   name: string;
   password: string; // In a real app, this would be a hash

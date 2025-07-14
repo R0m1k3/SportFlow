@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import { comparePassword } from '@/lib/auth';
 import { User as UserType } from '@/types';
+import { IUser } from '@/models/User'; // Import IUser
 
 export async function POST(request: Request) {
   await dbConnect(); // Ensure connection to MongoDB
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Username and password are required." }, { status: 400 });
     }
 
-    const user: UserType | null = await User.findOne({ $or: [{ email: username }, { name: username }] });
+    const user: IUser | null = await User.findOne({ $or: [{ email: username }, { name: username }] });
 
     if (!user) {
       return NextResponse.json({ message: "Nom d'utilisateur ou mot de passe incorrect." }, { status: 401 });

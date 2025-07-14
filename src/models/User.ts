@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { User as UserType, UserRole } from '@/types';
 
-export interface IUser extends UserType, Document {}
+export interface IUser extends Omit<UserType, '_id'>, Document {}
 
 const UserSchema: Schema = new Schema({
   email: { type: String, required: true, unique: true },

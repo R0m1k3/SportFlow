@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { Activity as ActivityType } from '@/types';
 
-export interface IActivity extends ActivityType, Document {}
+export interface IActivity extends Omit<ActivityType, '_id'>, Document {}
 
 const ActivitySchema: Schema = new Schema({
   userEmail: { type: String, required: true },
