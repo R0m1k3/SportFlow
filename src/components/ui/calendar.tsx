@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker" // Removed IconProps import
+import { DayPicker, IconProps } from "react-day-picker" // Import IconProps
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
@@ -54,11 +54,11 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ className }: { className?: string }) => ( // Simplified props
-          <ChevronLeft className={cn("h-4 w-4", className)} />
+        IconLeft: ({ className, ...props }: IconProps) => ( // Correctly type props with IconProps
+          <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
         ),
-        IconRight: ({ className }: { className?: string }) => ( // Simplified props
-          <ChevronRight className={cn("h-4 w-4", className)} />
+        IconRight: ({ className, ...props }: IconProps) => ( // Correctly type props with IconProps
+          <ChevronRight className={cn("h-4 w-4", className)} {...props} />
         ),
         ...props.components, // Ensure existing components are merged
       }}

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Bike, Dumbbell, HeartPulse, Dribbble } from "lucide-react";
 import { format, startOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Modifiers } from "react-day-picker"; // Removed DayContentProps import
+import { Modifiers, DayContentProps } from "react-day-picker"; // Import DayContentProps
 
 import { cn } from "@/lib/utils";
 
@@ -16,20 +16,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ActivityModal } from "./activity-modal";
 import { MonthlyStats } from "./monthly-stats";
 import { toast } from "sonner";
-
-// Define DayContentProps locally
-interface DayContentProps {
-  date: Date;
-  displayMonth: Date;
-  activeModifiers: {
-    selected?: boolean;
-    today?: boolean;
-    outside?: boolean;
-    disabled?: boolean;
-    // Add other modifiers as needed
-  };
-  children?: React.ReactNode;
-}
 
 const activityIcons: Record<ActivityType, React.ReactNode> = {
   vélo: <Bike className="h-5 w-5" />,
