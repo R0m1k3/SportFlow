@@ -1,45 +1,26 @@
-# Stage 1: Builder - Use the full node:20 image which includes build tools
-FROM node:20 AS builder
+# Stage 1: Install dependencies
+FROM node:20-alpine AS deps
 WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# Copy package manifests
-COPY package.json package-lock.json* ./
-
-# Install dependencies. Using the full node image provides necessary build tools
-# for any native modules that might be part of the dependency tree.
-RUN npm install
-
-# Copy the rest of the application source code
+# Stage 2: Build the application
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Build the Next.js application
-ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
 
-# Stage 2: Runner - Use a lightweight alpine image for the final stage
+# Stage 3: Run the application
 FROM node:20-alpine AS runner
 WORKDIR /app
-
-# Set environment variables for production
 ENV NODE_ENV production
-ENV PORT 3500
-
-# Create a non-root user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Copy the standalone output from the builder stage
-# The standalone output includes only the necessary files to run the app,
-# including a minimal set of node_modules.
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Switch to the non-root user
-USER nextjs
-
-# Expose the port Next.js will run on
-EXPOSE 3500
-
-# Start the Next.js server
+# Set the port from environment variable, default to 3500
+ARG PORT=3500
+ENV PORT=${PORT}
+EXPOSE ${PORT}
+COPY --from=builder /app/next.config.js ./
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 CMD ["node", "server.js"]
