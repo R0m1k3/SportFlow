@@ -1,8 +1,11 @@
-import DatabaseConstructor, { Statement } from 'better-sqlite3'; // Renamed default import
+import DatabaseConstructor, { Statement } from 'better-sqlite3'; // Import the default as DatabaseConstructor
 import path from 'path';
 import fs from 'fs';
 import { hashPassword } from './auth';
 import { Activity, ActivityType, User, UserRole } from '@/types';
+
+// Define the type for the Database instance
+type DatabaseInstance = InstanceType<typeof DatabaseConstructor>;
 
 // Path to the database file
 const dbFilePath = path.join(process.cwd(), 'data', 'app.db');
@@ -11,7 +14,7 @@ const dataDir = path.join(process.cwd(), 'data');
 // Global variable to store the database instance
 // This ensures it is initialized once and reused across requests
 declare global {
-  var __SQL_DB_INSTANCE: DatabaseConstructor | undefined; // Directly use DatabaseConstructor as the type
+  var __SQL_DB_INSTANCE: DatabaseInstance | undefined; // Use the new type alias
 }
 
 // Define the type for the result of a run operation
@@ -28,7 +31,7 @@ export interface WrappedStatement {
 }
 
 // Function to get or initialize the database
-const getDb = (): DatabaseConstructor => { // Directly use DatabaseConstructor as the return type
+const getDb = (): DatabaseInstance => { // Use the new type alias
   if (globalThis.__SQL_DB_INSTANCE) {
     console.log("Reusing existing SQLite database instance.");
     return globalThis.__SQL_DB_INSTANCE;
@@ -42,7 +45,7 @@ const getDb = (): DatabaseConstructor => { // Directly use DatabaseConstructor a
     }
 
     // Create a new database instance (or open existing)
-    globalThis.__SQL_DB_INSTANCE = new DatabaseConstructor(dbFilePath); // Use the renamed import
+    globalThis.__SQL_DB_INSTANCE = new DatabaseConstructor(dbFilePath); // Use DatabaseConstructor for instantiation
     console.log("SQLite database instance created/opened at:", dbFilePath);
 
     // Create tables if they don't exist
