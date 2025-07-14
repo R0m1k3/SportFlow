@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Bike, Dumbbell, HeartPulse, Dribbble } from "lucide-react";
 import { format, startOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Modifiers } from "react-day-picker"; // Removed DayContentProps
+import { Modifiers } from "react-day-picker"; // Removed DayContentProps import
+
 import { cn } from "@/lib/utils";
 
 import { Activity, ActivityType } from "@/types";
@@ -15,6 +16,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ActivityModal } from "./activity-modal";
 import { MonthlyStats } from "./monthly-stats";
 import { toast } from "sonner";
+
+// Define DayContentProps locally if not exported by react-day-picker
+interface DayContentProps {
+  date: Date;
+  displayMonth: Date;
+  activeModifiers: {
+    selected?: boolean;
+    today?: boolean;
+    outside?: boolean;
+    disabled?: boolean;
+    // Add other modifiers as needed
+  };
+  children?: React.ReactNode;
+}
 
 const activityIcons: Record<ActivityType, React.ReactNode> = {
   vélo: <Bike className="h-5 w-5" />,
@@ -55,7 +70,7 @@ export function ActivityDashboard() {
     }
   };
 
-  const handleDayClick = (day: Date | undefined, modifiers: Modifiers) => { // Corrected type for modifiers
+  const handleDayClick = (day: Date | undefined, modifiers: Modifiers) => {
     // Defensive handler to prevent crashes from invalid data
     if (!day || !(day instanceof Date) || isNaN(day.getTime()) || !modifiers || modifiers.disabled) {
       return;
@@ -82,9 +97,7 @@ export function ActivityDashboard() {
     return <p>Redirection...</p>;
   }
 
-  // DayContentProps is not directly exported, but the type can be inferred or defined locally if needed.
-  // For now, we'll use a generic React.FC type for simplicity as the props are standard.
-  const DayContentWithActivity: React.FC<{ date: Date; activeModifiers: Modifiers }> = (props) => {
+  const DayContentWithActivity: React.FC<DayContentProps> = (props) => { // Correctly type with DayContentProps
     // Bulletproof guard to prevent render crash from invalid dates
     if (!props.date || !(props.date instanceof Date) || isNaN(props.date.getTime())) {
       return <div />;
@@ -154,7 +167,7 @@ export function ActivityDashboard() {
             {activities.length > 0 ? (
               <div className="space-y-3 h-64 overflow-y-auto pr-2">
                 {activities.map((act) => (
-                  <div key={act._id} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50"> {/* Use _id */}
+                  <div key={act._id} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50">
                     <div className="p-2 bg-background rounded-full shadow-sm">
                       {activityIcons[act.type]}
                     </div>

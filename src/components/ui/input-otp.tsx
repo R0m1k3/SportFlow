@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { OTPInput, Slot, type OTPInputProps } from "input-otp"
+import { OTPInput, type OTPInputProps } from "input-otp"
+import { Slot } from "@radix-ui/react-slot"
 import { Dot } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -23,8 +24,8 @@ const InputOTP = React.forwardRef<
 InputOTP.displayName = "InputOTP"
 
 const InputOTPGroup = React.forwardRef<
-  React.ElementRef<typeof Slot>,
-  React.ComponentPropsWithoutRef<typeof Slot>
+  React.ElementRef<"div">, // Corrected type to HTMLDivElement
+  React.ComponentPropsWithoutRef<"div"> // Corrected props type to div props
 >(({ className, ...props }, ref) => (
   <div ref={ref} className={cn("flex items-center", className)} {...props} />
 ))
@@ -48,8 +49,8 @@ const InputOTPSlot = React.forwardRef<
 InputOTPSlot.displayName = "InputOTPSlot"
 
 const InputOTPSeparator = React.forwardRef<
-  React.ElementRef<"div">, // Corrected type to HTMLDivElement
-  React.ComponentPropsWithoutRef<"div"> // Corrected props type to div props
+  React.ElementRef<"div">,
+  React.ComponentPropsWithoutRef<"div">
 >(({ className, ...props }, ref) => (
   <div ref={ref} role="separator" className={cn("-mx-2 flex items-center", className)} {...props}>
     <Dot />
