@@ -56,7 +56,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
     try {
       let response;
       if (isEditing && user) {
-        const updatedUserData: User = { ...user, ...values };
+        const updatedUserData: User = { _id: user._id, ...values }; // Use _id
         response = await fetch('/api/users', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -67,7 +67,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
         }
         toast.success("Utilisateur mis à jour avec succès.");
       } else {
-        const newUserData: Omit<User, 'id'> = {
+        const newUserData: Omit<User, '_id'> = { // Use _id
           name: values.name,
           email: values.email,
           password: values.password!, // Password is required by createSchema

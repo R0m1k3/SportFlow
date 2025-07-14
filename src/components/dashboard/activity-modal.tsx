@@ -50,7 +50,7 @@ export function ActivityModal({ isOpen, onClose, onSave, date, userEmail }: Acti
       return;
     }
 
-    const newActivityData: Omit<Activity, "id"> = {
+    const newActivityData: Omit<Activity, "_id"> = { // Use _id
       userEmail,
       date: format(date, "yyyy-MM-dd"),
       type: values.activityType,
@@ -68,7 +68,7 @@ export function ActivityModal({ isOpen, onClose, onSave, date, userEmail }: Acti
       }
       const result = await response.json();
       toast.success("Activité enregistrée !");
-      onSave({ ...newActivityData, id: result.id as number });
+      onSave({ ...newActivityData, _id: result._id as string }); // Use _id
     } catch (error) {
       toast.error("Erreur lors de l'enregistrement de l'activité.");
       console.error(error);

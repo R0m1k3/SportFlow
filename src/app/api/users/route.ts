@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
-import { readDb, writeDb } from '@/lib/json-db'; // Ensure correct import path
+import dbConnect from '@/lib/mongodb';
+import User from '@/models/User';
 import { hashPassword } from '@/lib/auth';
-import { User } from '@/types';
+import { User as UserType } from '@/types';
 
 export async function GET() {
+  await dbConnect();
   try {
-    const db = await readDb();
-    // Explicitly type the parameter for destructuring
-    const users: Omit<User, 'password'>[] = db.users.map(({ password, ...rest }: User) => rest);
-    console.log("API GET /api/users - Fetched users (excluding password):", db.users.map((u: User) => ({ id: u.id, email: u.email, name: u.name, role: u.role })));
+    const users = await User.find({}).select('-password'); // Exclude password from results
     return NextResponse.json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -17,32 +16,21 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  await dbConnect();
   try {
     const { name, email, password, role } = await request.json();
 
-    const db = await readDb();
-
     // Check if user with same email or name already exists
-    const existingUser = db.users.find((u: User) => u.email === email || u.name === name);
+    const existingUser = await User.findOne({ $or: [{ email }, { name }] });
     
     if (existingUser) {
-      console.warn("API POST /api/users - User with this email or name already exists:", email, name);
       return NextResponse.json({ message: "User with this email or name already exists." }, { status: 409 });
     }
 
     const hashedPassword = hashPassword(password);
-    const newUser: User = {
-      id: db.users.length > 0 ? Math.max(...db.users.map((u: User) => u.id || 0)) + 1 : 1,
-      name,
-      email,
-      password: hashedPassword,
-      role,
-    };
-    db.users.push(newUser);
-    await writeDb(db);
+    const newUser = await User.create({ name, email, password: hashedPassword, role });
 
-    console.log("API POST /api/users - User added:", { id: newUser.id, name, email, role });
-    const { password: _, ...userWithoutPassword } = newUser; // Omit password from response
+    const { password: _, ...userWithoutPassword } = newUser.toObject(); // Omit password from response
     return NextResponse.json(userWithoutPassword, { status: 201 });
   } catch (error) {
     console.error("Error adding user:", error);
@@ -51,40 +39,34 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  await dbConnect();
   try {
-    const { id, name, email, password, role } = await request.json();
+    const { _id, name, email, password, role } = await request.json();
 
-    if (!id) {
-      console.warn("API PUT /api/users - User ID is required for update.");
+    if (!_id) {
       return NextResponse.json({ message: "User ID is required for update." }, { status: 400 });
     }
 
-    const db = await readDb();
-    const userIndex = db.users.findIndex((u: User) => u.id === id);
-
-    if (userIndex === -1) {
-      console.warn("API PUT /api/users - User not found for ID:", id);
+    const existingUser = await User.findById(_id);
+    if (!existingUser) {
       return NextResponse.json({ message: "User not found." }, { status: 404 });
     }
 
-    const existingUser = db.users[userIndex];
     let hashedPassword = existingUser.password;
     if (password) {
       hashedPassword = hashPassword(password);
-      console.log("API PUT /api/users - Password updated for user ID:", id);
     }
 
-    const updatedUser: User = {
-      ...existingUser,
-      name,
-      email,
-      password: hashedPassword,
-      role,
-    };
-    db.users[userIndex] = updatedUser;
-    await writeDb(db);
+    const updatedUser = await User.findByIdAndUpdate(
+      _id,
+      { name, email, password: hashedPassword, role },
+      { new: true, runValidators: true }
+    );
 
-    console.log("API PUT /api/users - User updated successfully for ID:", id);
+    if (!updatedUser) {
+      return NextResponse.json({ message: "User not found after update attempt." }, { status: 404 });
+    }
+
     return NextResponse.json({ message: "User updated successfully." });
   } catch (error) {
     console.error("Error updating user:", error);
@@ -93,25 +75,19 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  await dbConnect();
   try {
-    const { id } = await request.json();
-    if (!id) {
-      console.warn("API DELETE /api/users - User ID is required for deletion.");
+    const { _id } = await request.json();
+    if (!_id) {
       return NextResponse.json({ message: "User ID is required for deletion." }, { status: 400 });
     }
 
-    const db = await readDb();
-    const initialLength = db.users.length;
-    db.users = db.users.filter((u: User) => u.id !== id);
+    const result = await User.deleteOne({ _id });
 
-    if (db.users.length === initialLength) {
-      console.warn("API DELETE /api/users - User not found for deletion with ID:", id);
+    if (result.deletedCount === 0) {
       return NextResponse.json({ message: "User not found." }, { status: 404 });
     }
 
-    await writeDb(db);
-
-    console.log("API DELETE /api/users - User deleted successfully for ID:", id);
     return NextResponse.json({ message: "User deleted successfully." });
   } catch (error) {
     console.error("Error deleting user:", error);

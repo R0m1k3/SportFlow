@@ -12,11 +12,27 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3500
+      - MONGO_URI=mongodb://mongo:27017/activitytracker # MongoDB connection string
     volumes:
-      - ./data:/app/data # Mount a volume for persistent data
+      - ./data:/app/data # Keep this for now, though it will be less critical for data persistence
+    depends_on:
+      - mongo # Ensure mongo starts before the app
+    networks:
+      - nginx_default
+
+  mongo:
+    image: mongo:latest
+    container_name: mongodb_activitytracker
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db # Persistent volume for MongoDB data
     networks:
       - nginx_default
 
 networks:
   nginx_default:
     external: true
+
+volumes:
+  mongo_data: # Define the named volume for MongoDB data

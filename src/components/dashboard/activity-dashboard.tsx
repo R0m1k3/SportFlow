@@ -152,7 +152,7 @@ export function ActivityDashboard() {
             {activities.length > 0 ? (
               <div className="space-y-3 h-64 overflow-y-auto pr-2">
                 {activities.map((act) => (
-                  <div key={act.id} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50">
+                  <div key={act._id} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50"> {/* Use _id */}
                     <div className="p-2 bg-background rounded-full shadow-sm">
                       {activityIcons[act.type]}
                     </div>

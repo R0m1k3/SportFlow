@@ -54,12 +54,12 @@ export function UserManagement() {
   };
 
   const handleDeleteUser = async () => {
-    if (!userToDelete || !userToDelete.id) return;
+    if (!userToDelete || !userToDelete._id) return; // Use _id
     try {
       const response = await fetch('/api/users', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: userToDelete.id }),
+        body: JSON.stringify({ _id: userToDelete._id }), // Use _id
       });
       if (!response.ok) {
         throw new Error('Failed to delete user');
@@ -115,7 +115,7 @@ export function UserManagement() {
           {isMobile ? (
             <div className="space-y-4">
               {users.map((user) => (
-                <Card key={user.id} className="overflow-hidden">
+                <Card key={user._id} className="overflow-hidden"> {/* Use _id */}
                   <div className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="bg-muted p-3 rounded-full">
@@ -145,7 +145,7 @@ export function UserManagement() {
               </TableHeader>
               <TableBody>
                 {users.map((user) => (
-                  <TableRow key={user.id}>
+                  <TableRow key={user._id}> {/* Use _id */}
                     <TableCell>
                       <div className="font-medium">{user.name}</div>
                       <div className="text-sm text-muted-foreground">{user.email}</div>

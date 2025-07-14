@@ -1,41 +1,30 @@
 import { NextResponse } from 'next/server';
-import { readDb } from '@/lib/json-db'; // Ensure correct import path
+import dbConnect from '@/lib/mongodb';
+import User from '@/models/User';
 import { comparePassword } from '@/lib/auth';
-import { User } from '@/types';
+import { User as UserType } from '@/types';
 
 export async function POST(request: Request) {
-  console.log("API: /api/auth/login POST request received.");
-
+  await dbConnect(); // Ensure connection to MongoDB
   try {
-    console.log("API: Parsing request body...");
     const { username, password } = await request.json();
-    console.log("API: Request body parsed. Username:", username);
 
     if (!username || !password) {
-      console.warn("API: Missing username or password.");
       return NextResponse.json({ message: "Username and password are required." }, { status: 400 });
     }
 
-    console.log("API: Attempting to find user in DB...");
-    const db = await readDb();
-    const user: User | undefined = db.users.find((u: User) => u.email === username || u.name === username);
-    console.log("API: User lookup complete. User found:", !!user);
+    const user: UserType | null = await User.findOne({ $or: [{ email: username }, { name: username }] });
 
     if (!user) {
-      console.warn("API: User not found for username:", username);
       return NextResponse.json({ message: "Nom d'utilisateur ou mot de passe incorrect." }, { status: 401 });
     }
 
-    console.log("API: Comparing password...");
     const isPasswordValid = comparePassword(password, user.password);
-    console.log("API: Password comparison result:", isPasswordValid);
 
     if (isPasswordValid) {
-      const { password: _, ...userWithoutPassword } = user;
-      console.log("API: Login successful for user:", user.email);
+      const { password: _, ...userWithoutPassword } = user.toObject(); // Convert Mongoose document to plain object and omit password
       return NextResponse.json({ message: "Login successful", user: userWithoutPassword });
     } else {
-      console.warn("API: Invalid password for user:", user.email);
       return NextResponse.json({ message: "Nom d'utilisateur ou mot de passe incorrect." }, { status: 401 });
     }
   } catch (error) {
