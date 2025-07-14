@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Bike, Dumbbell, HeartPulse, Dribbble } from "lucide-react";
 import { format, startOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Modifiers } from "react-day-picker"; // Removed DayContentProps import
+import { Modifiers, ActiveModifiers } from "react-day-picker"; // Import ActiveModifiers, removed DayContentProps
 
 import { cn } from "@/lib/utils";
 
@@ -17,17 +17,11 @@ import { ActivityModal } from "./activity-modal";
 import { MonthlyStats } from "./monthly-stats";
 import { toast } from "sonner";
 
-// Define DayContentProps locally as react-day-picker might not export it directly
+// Define DayContentProps locally, using ActiveModifiers from react-day-picker
 interface DayContentProps {
   date: Date;
   displayMonth: Date;
-  activeModifiers: {
-    selected?: boolean;
-    today?: boolean;
-    outside?: boolean;
-    disabled?: boolean;
-    // Add other modifiers as needed
-  };
+  activeModifiers: ActiveModifiers; // Use ActiveModifiers
   children?: React.ReactNode;
 }
 

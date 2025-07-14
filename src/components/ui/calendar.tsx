@@ -2,17 +2,12 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import { DayPicker } from "react-day-picker" // Removed IconProps import
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
-
-// Define IconProps locally as react-day-picker might not export it directly
-interface CustomIconProps extends React.SVGProps<SVGSVGElement> {
-  className?: string;
-}
 
 function Calendar({
   className,
@@ -58,15 +53,17 @@ function Calendar({
         day_hidden: "invisible",
         ...classNames,
       }}
-      components={{
-        IconLeft: ({ className, ...rest }: CustomIconProps) => ( // Use local CustomIconProps
-          <ChevronLeft className={cn("h-4 w-4", className)} {...rest} />
-        ),
-        IconRight: ({ className, ...rest }: CustomIconProps) => ( // Use local CustomIconProps
-          <ChevronRight className={cn("h-4 w-4", className)} {...rest} />
-        ),
-        ...props.components, // Ensure existing components are merged
-      }}
+      components={
+        {
+          IconLeft: ({ className, ...rest }: React.ComponentProps<'svg'>) => ( // Use React.ComponentProps<'svg'>
+            <ChevronLeft className={cn("h-4 w-4", className)} {...rest} />
+          ),
+          IconRight: ({ className, ...rest }: React.ComponentProps<'svg'>) => ( // Use React.ComponentProps<'svg'>
+            <ChevronRight className={cn("h-4 w-4", className)} {...rest} />
+          ),
+          ...props.components, // Ensure existing components are merged
+        } as React.ComponentProps<typeof DayPicker>['components']
+      }
       {...props}
     />
   )
