@@ -9,6 +9,11 @@ import { buttonVariants } from "@/components/ui/button"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
+// Define IconProps locally as react-day-picker might not export it directly
+interface CustomIconProps extends React.SVGProps<SVGSVGElement> {
+  className?: string;
+}
+
 function Calendar({
   className,
   classNames,
@@ -53,17 +58,15 @@ function Calendar({
         day_hidden: "invisible",
         ...classNames,
       }}
-      components={
-        {
-          IconLeft: ({ className }: { className?: string }) => (
-            <ChevronLeft className={cn("h-4 w-4", className)} />
-          ),
-          IconRight: ({ className }: { className?: string }) => (
-            <ChevronRight className={cn("h-4 w-4", className)} />
-          ),
-          ...props.components,
-        } as React.ComponentProps<typeof DayPicker>['components']
-      }
+      components={{
+        IconLeft: ({ className, ...rest }: CustomIconProps) => ( // Use local CustomIconProps
+          <ChevronLeft className={cn("h-4 w-4", className)} {...rest} />
+        ),
+        IconRight: ({ className, ...rest }: CustomIconProps) => ( // Use local CustomIconProps
+          <ChevronRight className={cn("h-4 w-4", className)} {...rest} />
+        ),
+        ...props.components, // Ensure existing components are merged
+      }}
       {...props}
     />
   )
