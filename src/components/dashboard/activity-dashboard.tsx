@@ -119,7 +119,9 @@ export function ActivityDashboard() {
               onDayClick={handleDayClick}
               month={currentMonth}
               onMonthChange={setCurrentMonth}
-              components={{ DayContent: DayContentWithActivity }} // Assuré que DayContent est passé correctement
+              components={
+                { DayContent: DayContentWithActivity } as React.ComponentProps<typeof Calendar>['components']
+              }
               locale={fr}
               className="w-full"
               classNames={{
