@@ -7,11 +7,11 @@ services:
       dockerfile: Dockerfile
     container_name: nextjs-activity-tracker
     ports:
-      - "3500:3500"
+      - "3500:3000" # Map host port 3500 to container port 3000
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - PORT=3500
+      - PORT=3000 # Ensure the container runs on port 3000
     networks:
       - nginx_default
 

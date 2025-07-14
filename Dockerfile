@@ -1,46 +1,41 @@
-# Dockerfile
-
-# Stage 1: Install dependencies
-FROM node:20-alpine AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
-# Add build tools for native dependencies
-RUN apk add --no-cache python3 make g++
-WORKDIR /app
-
-COPY package.json package-lock.json* ./
-RUN npm ci
-
-# Stage 2: Build the application
+# Stage 1: Builder
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+
+# Copy package.json and package-lock.json first to leverage Docker cache
+COPY package.json package-lock.json* ./
+
+# Install dependencies
+# Using npm install to be more resilient to package-lock.json issues
+RUN npm install
+
+# Copy the rest of the application code
 COPY . .
 
-# Disable Next.js telemetry
+# Build the Next.js application
 ENV NEXT_TELEMETRY_DISABLED 1
-
 RUN npm run build
 
-# Stage 3: Production image
+# Stage 2: Runner
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV=production
-ENV PORT=3500
-# Disable Next.js telemetry
-ENV NEXT_TELEMETRY_DISABLED 1
+# Set environment variables for production
+ENV NODE_ENV production
+ENV PORT 3000 # Next.js default port
 
+# Create a non-root user for security
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
-
-# Copy standalone output
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
 USER nextjs
 
-EXPOSE 3500
+# Copy the standalone output from the builder stage
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/static ./.next/static
 
+# Expose the port Next.js will run on
+EXPOSE 3000
+
+# Start the Next.js server
 CMD ["node", "server.js"]
