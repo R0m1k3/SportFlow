@@ -1,10 +1,10 @@
-"use client";
+"use client"
 
-import * as React from "react";
-import { OTPInput, Slot, type OTPInputProps } from "input-otp"; // Corrected import
-import { Dot } from "lucide-react";
+import * as React from "react"
+import { OTPInput, Slot, type OTPInputProps } from "input-otp"
+import { Dot } from "lucide-react"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 const InputOTP = React.forwardRef<
   React.ElementRef<typeof OTPInput>,
@@ -19,45 +19,42 @@ const InputOTP = React.forwardRef<
     className={cn("disabled:cursor-not-allowed", className)}
     {...props}
   />
-));
-InputOTP.displayName = "InputOTP";
+))
+InputOTP.displayName = "InputOTP"
 
 const InputOTPGroup = React.forwardRef<
-  React.ElementRef<"div">,
-  React.ComponentPropsWithoutRef<"div">
+  React.ElementRef<typeof Slot>,
+  React.ComponentPropsWithoutRef<typeof Slot>
 >(({ className, ...props }, ref) => (
   <div ref={ref} className={cn("flex items-center", className)} {...props} />
-));
-InputOTPGroup.displayName = "InputOTPGroup";
+))
+InputOTPGroup.displayName = "InputOTPGroup"
 
 const InputOTPSlot = React.forwardRef<
-  React.ElementRef<"div">,
-  React.ComponentPropsWithoutRef<"div"> & { index: number }
+  React.ElementRef<typeof Slot>,
+  React.ComponentPropsWithoutRef<typeof Slot> & { index: number }
 >(({ index, className, ...props }, ref) => (
-  <div
+  <Slot
     ref={ref}
+    index={index}
     className={cn(
       "relative flex h-9 w-9 items-center justify-center border-y border-r border-input text-sm shadow-sm transition-all first:rounded-l-md first:border-l last:rounded-r-md",
+      "focus:z-10 focus:border-ring focus:outline-none",
       className
     )}
     {...props}
-  >
-    {props.children}
-    <div className="absolute inset-0 flex items-center justify-center">
-      {index}
-    </div>
-  </div>
-));
-InputOTPSlot.displayName = "InputOTPSlot";
+  />
+))
+InputOTPSlot.displayName = "InputOTPSlot"
 
 const InputOTPSeparator = React.forwardRef<
-  React.ElementRef<"div">,
-  React.ComponentPropsWithoutRef<"div">
+  React.ElementRef<"div">, // Corrected type to HTMLDivElement
+  React.ComponentPropsWithoutRef<"div"> // Corrected props type to div props
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("-mx-2 flex items-center", className)} {...props}>
+  <div ref={ref} role="separator" className={cn("-mx-2 flex items-center", className)} {...props}>
     <Dot />
   </div>
-));
-InputOTPSeparator.displayName = "InputOTPSeparator";
+))
+InputOTPSeparator.displayName = "InputOTPSeparator"
 
-export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator };
+export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator }
