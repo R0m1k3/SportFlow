@@ -133,7 +133,7 @@ export function ActivityDashboard() {
               onDayClick={handleDayClick}
               month={currentMonth}
               onMonthChange={setCurrentMonth}
-              components={{ DayContent: DayContentWithActivity }}
+              components={{ DayContent: DayContentWithActivity }} // Assuré que DayContent est passé correctement
               locale={fr}
               className="w-full"
               classNames={{
