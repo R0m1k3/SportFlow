@@ -22,7 +22,7 @@ WORKDIR /app
 
 # Set environment variables for production
 ENV NODE_ENV production
-ENV PORT 3000
+ENV PORT 3500 # Changed to 3500
 
 # Create a non-root user for security
 RUN addgroup --system --gid 1001 nodejs
@@ -39,7 +39,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 
 # Expose the port Next.js will run on
-EXPOSE 3000
+EXPOSE 3500 # Changed to 3500
 
 # Start the Next.js server
 CMD ["node", "server.js"]
