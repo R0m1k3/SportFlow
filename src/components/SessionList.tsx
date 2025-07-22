@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface Session {
   id: string;
@@ -15,9 +18,15 @@ interface Session {
 
 interface SessionListProps {
   sessions: Session[];
+  onDeleteSession: (id: string) => void; // New prop for delete functionality
 }
 
-const SessionList: React.FC<SessionListProps> = ({ sessions }) => {
+const SessionList: React.FC<SessionListProps> = ({ sessions, onDeleteSession }) => {
+  const handleDeleteClick = (id: string) => {
+    onDeleteSession(id);
+    toast.success("Séance supprimée avec succès !");
+  };
+
   return (
     <Card className="w-full max-w-md mx-auto mt-8">
       <CardHeader>
@@ -33,6 +42,7 @@ const SessionList: React.FC<SessionListProps> = ({ sessions }) => {
                 <TableHead>Date</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead className="text-right">Durée (min)</TableHead>
+                <TableHead className="text-center">Actions</TableHead> {/* New column for actions */}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -43,6 +53,16 @@ const SessionList: React.FC<SessionListProps> = ({ sessions }) => {
                     {session.type === "bike" ? "Vélo d'appartement" : "Musculation"}
                   </TableCell>
                   <TableCell className="text-right">{session.duration}</TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteClick(session.id)}
+                      aria-label="Supprimer la séance"
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
