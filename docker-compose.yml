@@ -2,10 +2,14 @@ version: '3.8'
 
 services:
   frontend:
-    build:
+    build: 
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3666:80"  # Mappe le port 80 du conteneur sur le port 3666 de l'hôte
-    container_name: mon-app-sportive-frontend
-    restart: unless-stopped
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+    command: npm start
