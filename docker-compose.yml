@@ -4,8 +4,7 @@ services:
   frontend:
     build: .
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       - NODE_ENV=production
-    # Suppression des volumes problématiques
-    # Les fichiers sont copiés lors du build via le Dockerfile
+    restart: unless-stopped
