@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import SessionForm from "@/components/SessionForm";
 import SessionList from "@/components/SessionList";
@@ -16,7 +16,21 @@ interface Session {
 }
 
 const Index = () => {
-  const [sessions, setSessions] = useState<Session[]>([]);
+  // Initialize sessions state from localStorage or an empty array
+  const [sessions, setSessions] = useState<Session[]>(() => {
+    if (typeof window !== 'undefined') { // Check if window is defined (client-side)
+      const savedSessions = localStorage.getItem("sportSessions");
+      return savedSessions ? JSON.parse(savedSessions) : [];
+    }
+    return [];
+  });
+
+  // Save sessions to localStorage whenever the sessions state changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') { // Check if window is defined (client-side)
+      localStorage.setItem("sportSessions", JSON.stringify(sessions));
+    }
+  }, [sessions]);
 
   const addSession = (newSession: { type: "bike" | "weight_training"; duration: number; date: string }) => {
     const sessionWithIdAndDate: Session = {
@@ -38,7 +52,7 @@ const Index = () => {
       </h1>
       <SessionForm onAddSession={addSession} />
       <MonthlyStatsCard sessions={sessions} />
-      <SessionList sessions={sessions} onDeleteSession={deleteSession} /> {/* Pass the delete function */}
+      <SessionList sessions={sessions} onDeleteSession={deleteSession} />
       <MadeWithDyad />
       <Toaster richColors position="bottom-right" />
     </div>
