@@ -17,11 +17,11 @@ interface Session {
 const Index = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
 
-  const addSession = (newSession: { type: "bike" | "weight_training"; duration: number }) => {
+  const addSession = (newSession: { type: "bike" | "weight_training"; duration: number; date: string }) => {
     const sessionWithIdAndDate: Session = {
       ...newSession,
       id: uuidv4(),
-      date: new Date().toISOString().split('T')[0], // Get current date in YYYY-MM-DD format
+      date: newSession.date, // Use the date provided by the form
     };
     setSessions((prevSessions) => [...prevSessions, sessionWithIdAndDate]);
   };
