@@ -1,8 +1,8 @@
 # Étape de construction
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci
 COPY . .
 RUN npm run build
 
@@ -10,8 +10,8 @@ RUN npm run build
 FROM node:20-alpine
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
-COPY package*.json ./
-RUN npm install --only=production
+COPY package.json package-lock.json ./
+RUN npm ci --only=production
 
 EXPOSE 3000
-CMD ["npm", "run", "preview"]  // Changé pour utiliser le script preview
+CMD ["npm", "run", "preview"]
