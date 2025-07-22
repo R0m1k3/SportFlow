@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import SessionForm from "@/components/SessionForm";
 import SessionList from "@/components/SessionList";
+import MonthlyStatsCard from "@/components/MonthlyStatsCard"; // Import the new component
 import { v4 as uuidv4 } from 'uuid';
-import { Toaster } from "sonner"; // Import Toaster from sonner for toasts
+import { Toaster } from "sonner";
 
 interface Session {
   id: string;
@@ -21,7 +22,7 @@ const Index = () => {
     const sessionWithIdAndDate: Session = {
       ...newSession,
       id: uuidv4(),
-      date: newSession.date, // Use the date provided by the form
+      date: newSession.date,
     };
     setSessions((prevSessions) => [...prevSessions, sessionWithIdAndDate]);
   };
@@ -32,6 +33,7 @@ const Index = () => {
         Mon Carnet de Séances Sportives
       </h1>
       <SessionForm onAddSession={addSession} />
+      <MonthlyStatsCard sessions={sessions} /> {/* Add the new stats card here */}
       <SessionList sessions={sessions} />
       <MadeWithDyad />
       <Toaster richColors position="bottom-right" />
