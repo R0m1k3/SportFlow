@@ -10,29 +10,27 @@ import { Toaster } from "sonner";
 
 interface Session {
   id: string;
-  type: "bike" | "weight_training";
-  duration: number; // in minutes
-  date: string; // YYYY-MM-DD
+  type: "bike" | "weight_training" | "walking";
+  duration: number;
+  date: string;
 }
 
 const Index = () => {
-  // Initialize sessions state from localStorage or an empty array
   const [sessions, setSessions] = useState<Session[]>(() => {
-    if (typeof window !== 'undefined') { // Check if window is defined (client-side)
+    if (typeof window !== 'undefined') {
       const savedSessions = localStorage.getItem("sportSessions");
       return savedSessions ? JSON.parse(savedSessions) : [];
     }
     return [];
   });
 
-  // Save sessions to localStorage whenever the sessions state changes
   useEffect(() => {
-    if (typeof window !== 'undefined') { // Check if window is defined (client-side)
+    if (typeof window !== 'undefined') {
       localStorage.setItem("sportSessions", JSON.stringify(sessions));
     }
   }, [sessions]);
 
-  const addSession = (newSession: { type: "bike" | "weight_training"; duration: number; date: string }) => {
+  const addSession = (newSession: { type: "bike" | "weight_training" | "walking"; duration: number; date: string }) => {
     const sessionWithIdAndDate: Session = {
       ...newSession,
       id: uuidv4(),

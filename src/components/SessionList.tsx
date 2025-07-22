@@ -11,14 +11,14 @@ import { toast } from "sonner";
 
 interface Session {
   id: string;
-  type: "bike" | "weight_training";
-  duration: number; // in minutes
-  date: string; // YYYY-MM-DD
+  type: "bike" | "weight_training" | "walking";
+  duration: number;
+  date: string;
 }
 
 interface SessionListProps {
   sessions: Session[];
-  onDeleteSession: (id: string) => void; // New prop for delete functionality
+  onDeleteSession: (id: string) => void;
 }
 
 const SessionList: React.FC<SessionListProps> = ({ sessions, onDeleteSession }) => {
@@ -42,7 +42,7 @@ const SessionList: React.FC<SessionListProps> = ({ sessions, onDeleteSession }) 
                 <TableHead>Date</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead className="text-right">Durée (min)</TableHead>
-                <TableHead className="text-center">Actions</TableHead> {/* New column for actions */}
+                <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -50,7 +50,8 @@ const SessionList: React.FC<SessionListProps> = ({ sessions, onDeleteSession }) 
                 <TableRow key={session.id}>
                   <TableCell>{format(new Date(session.date), "dd MMMM yyyy", { locale: fr })}</TableCell>
                   <TableCell>
-                    {session.type === "bike" ? "Vélo d'appartement" : "Musculation"}
+                    {session.type === "bike" ? "Vélo d'appartement" : 
+                     session.type === "weight_training" ? "Musculation" : "Marche"}
                   </TableCell>
                   <TableCell className="text-right">{session.duration}</TableCell>
                   <TableCell className="text-center">

@@ -8,9 +8,9 @@ import { fr } from "date-fns/locale";
 
 interface Session {
   id: string;
-  type: "bike" | "weight_training";
-  duration: number; // in minutes
-  date: string; // YYYY-MM-DD
+  type: "bike" | "weight_training" | "walking";
+  duration: number;
+  date: string;
 }
 
 interface MonthlyStatsCardProps {
@@ -29,6 +29,7 @@ const MonthlyStatsCard: React.FC<MonthlyStatsCardProps> = ({ sessions }) => {
 
   const bikeSessions = monthlySessions.filter(session => session.type === "bike").length;
   const weightTrainingSessions = monthlySessions.filter(session => session.type === "weight_training").length;
+  const walkingSessions = monthlySessions.filter(session => session.type === "walking").length;
 
   return (
     <Card className="w-full max-w-md mx-auto mt-8">
@@ -55,6 +56,10 @@ const MonthlyStatsCard: React.FC<MonthlyStatsCardProps> = ({ sessions }) => {
           <div className="flex justify-between items-center pl-4">
             <span>Musculation :</span>
             <Badge variant="outline">{weightTrainingSessions}</Badge>
+          </div>
+          <div className="flex justify-between items-center pl-4">
+            <span>Marche :</span>
+            <Badge variant="outline">{walkingSessions}</Badge>
           </div>
         </div>
         {totalSessions === 0 && (

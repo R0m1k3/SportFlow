@@ -15,11 +15,11 @@ import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 
 interface SessionFormProps {
-  onAddSession: (session: { type: "bike" | "weight_training"; duration: number; date: string }) => void;
+  onAddSession: (session: { type: "bike" | "weight_training" | "walking"; duration: number; date: string }) => void;
 }
 
 const SessionForm: React.FC<SessionFormProps> = ({ onAddSession }) => {
-  const [sessionType, setSessionType] = useState<"bike" | "weight_training">("bike");
+  const [sessionType, setSessionType] = useState<"bike" | "weight_training" | "walking">("bike");
   const [duration, setDuration] = useState<string>("30");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
@@ -40,10 +40,10 @@ const SessionForm: React.FC<SessionFormProps> = ({ onAddSession }) => {
     onAddSession({ 
       type: sessionType, 
       duration: parsedDuration, 
-      date: format(selectedDate, "yyyy-MM-dd") // Format date to YYYY-MM-DD
+      date: format(selectedDate, "yyyy-MM-dd")
     });
-    setDuration("30"); // Reset duration to default
-    setSelectedDate(new Date()); // Reset date to current date
+    setDuration("30");
+    setSelectedDate(new Date());
     toast.success("Séance ajoutée avec succès !");
   };
 
@@ -58,7 +58,7 @@ const SessionForm: React.FC<SessionFormProps> = ({ onAddSession }) => {
             <Label htmlFor="sessionType">Type de séance</Label>
             <RadioGroup
               defaultValue="bike"
-              onValueChange={(value: "bike" | "weight_training") => setSessionType(value)}
+              onValueChange={(value: "bike" | "weight_training" | "walking") => setSessionType(value)}
               className="flex space-x-4"
             >
               <div className="flex items-center space-x-2">
@@ -69,8 +69,13 @@ const SessionForm: React.FC<SessionFormProps> = ({ onAddSession }) => {
                 <RadioGroupItem value="weight_training" id="weight_training" />
                 <Label htmlFor="weight_training">Musculation</Label>
               </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="walking" id="walking" />
+                <Label htmlFor="walking">Marche</Label>
+              </div>
             </RadioGroup>
           </div>
+          {/* Le reste du formulaire reste inchangé */}
           <div className="space-y-2">
             <Label htmlFor="duration">Durée (minutes)</Label>
             <Input
