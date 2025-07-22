@@ -6,12 +6,12 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Étape de production
+# Étape d'exécution
 FROM node:20-alpine
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY package*.json ./
-RUN npm install --production
+RUN npm install --only=production
 
 EXPOSE 3000
 CMD ["npm", "start"]

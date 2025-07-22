@@ -2,14 +2,10 @@ version: '3.8'
 
 services:
   frontend:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    build: .
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-    volumes:
-      - ./package.json:/app/package.json
-      - ./package-lock.json:/app/package-lock.json
-    command: npm start
+    # Suppression des volumes problématiques
+    # Les fichiers sont copiés lors du build via le Dockerfile
