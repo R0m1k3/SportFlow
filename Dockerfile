@@ -21,7 +21,7 @@ FROM nginx:stable-alpine
 # Copy the built application from the build stage to Nginx's default HTML directory
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Expose port 80
+# Expose port 80 (interne au conteneur)
 EXPOSE 80
 
 # Command to run Nginx
