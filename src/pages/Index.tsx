@@ -7,11 +7,11 @@ import SessionList from "@/components/SessionList";
 import MonthlyStatsCard from "@/components/MonthlyStatsCard";
 import Logo from "@/components/Logo";
 import { Toaster, toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { fetchSessions, addSession as addSessionApi, deleteSession as deleteSessionApi } from "@/lib/data";
 
 interface Session {
   id: string;
@@ -20,24 +20,8 @@ interface Session {
   date: string;
 }
 
-const fetchSessions = async (userId: string | undefined) => {
-  if (!userId) return [];
-  const { data, error } = await supabase
-    .from("sport_sessions")
-    .select("*")
-    .eq("user_id", userId)
-    .order("date", { ascending: false });
-
-  if (error) {
-    toast.error("Erreur lors du chargement des séances.");
-    console.error("Error fetching sessions:", error);
-    return [];
-  }
-  return data;
-};
-
 const Index = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: sessions = [], isLoading } = useQuery({
@@ -48,30 +32,30 @@ const Index = () => {
 
   const addSession = async (newSession: { type: "bike" | "weight_training" | "walking"; duration: number; date: string }) => {
     if (!user) return;
-    const { error } = await supabase
-      .from("sport_sessions")
-      .insert([{ ...newSession, user_id: user.id }]);
-
-    if (error) {
-      toast.error("Erreur lors de l'ajout de la séance.");
-    } else {
+    try {
+      await addSessionApi({ ...newSession, user_id: user.id });
       toast.success("Séance ajoutée avec succès !");
       queryClient.invalidateQueries({ queryKey: ["sessions", user.id] });
+    } catch (error) {
+      toast.error("Erreur lors de l'ajout de la séance.");
+      console.error("Error adding session:", error);
     }
   };
 
   const deleteSession = async (id: string) => {
-    const { error } = await supabase.from("sport_sessions").delete().eq("id", id);
-    if (error) {
-      toast.error("Erreur lors de la suppression de la séance.");
-    } else {
+    if (!user) return;
+    try {
+      await deleteSessionApi(id);
       toast.success("Séance supprimée avec succès !");
-      queryClient.invalidateQueries({ queryKey: ["sessions", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["sessions", user?.id] });
+    } catch (error) {
+      toast.error("Erreur lors de la suppression de la séance.");
+      console.error("Error deleting session:", error);
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => {
+    logout();
     queryClient.clear();
   };
 
@@ -88,10 +72,10 @@ const Index = () => {
         <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1 flex flex-col gap-8">
             <SessionForm onAddSession={addSession} />
-            {isLoading ? <Skeleton className="h-[280px] w-full" /> : <MonthlyStatsCard sessions={sessions} />}
+            {isLoading ? <Skeleton className="h-[280px] w-full" /> : <MonthlyStatsCard sessions={sessions as Session[]} />}
           </div>
           <div className="lg:col-span-2">
-            {isLoading ? <Skeleton className="h-[400px] w-full" /> : <SessionList sessions={sessions} onDeleteSession={deleteSession} />}
+            {isLoading ? <Skeleton className="h-[400px] w-full" /> : <SessionList sessions={sessions as Session[]} onDeleteSession={deleteSession} />}
           </div>
         </main>
       </div>

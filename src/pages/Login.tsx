@@ -1,16 +1,21 @@
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, FormEvent } from "react";
 import { useAuth } from "@/contexts/AuthProvider";
 import { Navigate } from "react-router-dom";
 import Logo from "@/components/Logo";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Login = () => {
-  const { user, loading } = useAuth();
+  const { user, login, loading } = useAuth();
+  const [email, setEmail] = useState("test@example.com");
+  const [password, setPassword] = useState("password");
 
-  if (loading) {
-    return null;
-  }
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    login(email);
+  };
 
   if (user) {
     return <Navigate to="/" replace />;
@@ -22,36 +27,39 @@ const Login = () => {
         <div className="mb-8 text-center">
           <Logo />
         </div>
-        <div className="bg-card p-8 rounded-lg shadow-md border">
-          <Auth
-            supabaseClient={supabase}
-            appearance={{ theme: ThemeSupa }}
-            providers={[]}
-            localization={{
-              variables: {
-                sign_in: {
-                  email_label: "Adresse e-mail",
-                  password_label: "Mot de passe",
-                  button_label: "Se connecter",
-                  social_provider_text: "Se connecter avec {{provider}}",
-                  link_text: "Vous avez déjà un compte ? Connectez-vous",
-                },
-                sign_up: {
-                  email_label: "Adresse e-mail",
-                  password_label: "Mot de passe",
-                  button_label: "S'inscrire",
-                  social_provider_text: "S'inscrire avec {{provider}}",
-                  link_text: "Vous n'avez pas de compte ? Inscrivez-vous",
-                },
-                forgotten_password: {
-                  email_label: "Adresse e-mail",
-                  button_label: "Envoyer les instructions",
-                  link_text: "Mot de passe oublié ?",
-                },
-              },
-            }}
-          />
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-center text-2xl">Connexion</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="email">Adresse e-mail</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="email@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Mot de passe</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Connexion en cours..." : "Se connecter"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

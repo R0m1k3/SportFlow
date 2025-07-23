@@ -1,58 +1,49 @@
-import { supabase } from "@/integrations/supabase/client";
-import { Session, User } from "@supabase/supabase-js";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from "react";
+import { createContext, useContext, useState, ReactNode, useMemo } from "react";
+
+// Types factices pour remplacer les dépendances Supabase
+interface User {
+  id: string;
+  email: string;
+}
+
+interface Session {
+  user: User;
+}
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  login: (email: string) => void;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const getSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error("Error getting session:", error);
-        setLoading(false);
-        return;
-      }
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
+  const login = (email: string) => {
+    setLoading(true);
+    setTimeout(() => { // Simuler une connexion asynchrone
+      const mockUser: User = { id: 'mock-user-id', email };
+      setUser(mockUser);
       setLoading(false);
-    };
-
-    getSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-      }
-    );
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
-  const value = {
-    user,
-    session,
-    loading,
+    }, 500);
   };
+
+  const logout = () => {
+    setUser(null);
+  };
+
+  const value = useMemo(() => ({
+    user,
+    session: user ? { user } : null,
+    loading,
+    login,
+    logout,
+  }), [user, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
