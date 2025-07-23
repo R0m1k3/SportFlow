@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../db';
 import { protect, AuthRequest } from '../middleware/auth';
+import { User } from '../types';
 
 const router = Router();
 
@@ -17,7 +18,7 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const result = await pool.query<User>('SELECT * FROM users WHERE email = $1', [email]);
     const user = result.rows[0];
 
     if (!user) {
@@ -59,7 +60,7 @@ router.get('/me', protect, async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: 'User ID not found in token' });
     }
 
-    const result = await pool.query('SELECT id, email, role FROM users WHERE id = $1', [userId]);
+    const result = await pool.query<Pick<User, 'id' | 'email' | 'role'>>('SELECT id, email, role FROM users WHERE id = $1', [userId]);
     const user = result.rows[0];
 
     if (!user) {
