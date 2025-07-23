@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 export interface AuthRequest extends express.Request {
   user?: {
     userId: string;
-    role: string;
+    role: 'admin' | 'user';
   };
 }
 
@@ -24,7 +24,7 @@ export const protect = (req: AuthRequest, res: express.Response, next: express.N
       return res.status(500).json({ message: 'Server configuration error.' });
     }
 
-    const decoded = jwt.verify(token, jwtSecret) as { userId: string; role: string };
+    const decoded = jwt.verify(token, jwtSecret) as { userId: string; role: 'admin' | 'user' };
     req.user = { userId: decoded.userId, role: decoded.role };
     next();
   } catch (error) {

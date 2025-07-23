@@ -7,7 +7,7 @@ import authRoutes from './routes/auth';
 dotenv.config({ path: './backend/.env' });
 
 const app = express();
-const port = process.env.BACKEND_PORT || 3001;
+const port = parseInt(process.env.BACKEND_PORT || '3001', 10);
 
 // Configurer CORS pour autoriser les requêtes depuis le frontend
 app.use(cors({
