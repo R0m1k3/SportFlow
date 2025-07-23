@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, ReactNode, useMemo } from "react";
-import { users as dbUsers } from "@/lib/auth-data";
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from "react";
 import { toast } from "sonner";
+
+const API_URL = "http://localhost:3001/api";
 
 interface User {
   id: string;
@@ -8,15 +9,11 @@ interface User {
   role: string;
 }
 
-interface Session {
-  user: User;
-}
-
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
+  token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => void;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -24,37 +21,78 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
+  const [loading, setLoading] = useState(true);
 
-  const login = (email: string, password: string) => {
-    setLoading(true);
-    setTimeout(() => { // Simuler une latence réseau
-      const foundUser = dbUsers.find(
-        (u) => u.email === email && u.password === password
-      );
-
-      if (foundUser) {
-        const { password, ...userToStore } = foundUser;
-        setUser(userToStore);
-        toast.success("Connexion réussie !");
+  const fetchUser = useCallback(async (authToken: string) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/me`, {
+        headers: {
+          "Authorization": `Bearer ${authToken}`,
+        },
+      });
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
       } else {
-        toast.error("Email ou mot de passe incorrect.");
+        // Token is invalid or expired
+        localStorage.removeItem("token");
+        setToken(null);
+        setUser(null);
       }
+    } catch (error) {
+      console.error("Failed to fetch user", error);
+      localStorage.removeItem("token");
+      setToken(null);
+      setUser(null);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
+  }, []);
+
+  useEffect(() => {
+    const currentToken = localStorage.getItem("token");
+    if (currentToken) {
+      setToken(currentToken);
+      fetchUser(currentToken);
+    } else {
+      setLoading(false);
+    }
+  }, [fetchUser]);
+
+  const login = async (email: string, password: string) => {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (response.ok) {
+      const { token: newToken, user: userData } = await response.json();
+      localStorage.setItem("token", newToken);
+      setToken(newToken);
+      setUser(userData);
+      toast.success("Connexion réussie !");
+    } else {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Email ou mot de passe incorrect.");
+    }
   };
 
   const logout = () => {
     setUser(null);
+    setToken(null);
+    localStorage.removeItem("token");
+    toast.info("Vous avez été déconnecté.");
   };
 
   const value = useMemo(() => ({
     user,
-    session: user ? { user } : null,
+    token,
     loading,
     login,
     logout,
-  }), [user, loading]);
+  }), [user, token, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

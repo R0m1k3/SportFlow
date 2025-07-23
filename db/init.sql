@@ -1,36 +1,26 @@
--- Activer l'extension pour générer des UUID si elle n'est pas déjà activée
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- Créer un type ENUM pour les types de séances pour garantir la cohérence des données
-CREATE TYPE session_type AS ENUM ('bike', 'weight_training', 'walking');
+-- Activer l'extension pour générer des UUIDs si elle n'est pas déjà activée
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Créer la table des utilisateurs
--- Dans une application réelle, le mot de passe doit être stocké sous forme de hash sécurisé.
 CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL DEFAULT 'user',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    role VARCHAR(50) DEFAULT 'user',
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Créer la table des séances de sport
 CREATE TABLE sport_sessions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL,
-    type session_type NOT NULL,
-    duration INTEGER NOT NULL, -- Durée en minutes
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL CHECK (type IN ('bike', 'weight_training', 'walking')),
+    duration INTEGER NOT NULL, -- en minutes
     date DATE NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    CONSTRAINT fk_user
-        FOREIGN KEY(user_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Créer des index pour améliorer les performances des requêtes
-CREATE INDEX idx_sport_sessions_user_id ON sport_sessions(user_id);
-CREATE INDEX idx_sport_sessions_date ON sport_sessions(date);
-
--- Message pour indiquer que le script a été exécuté
-\echo 'Base de données et tables initialisées avec succès.'
+-- Insérer un utilisateur administrateur par défaut
+-- Le mot de passe est 'admin'. Il est haché avec bcrypt (coût de 10).
+-- $2a$10$CwTycUXWue0Thq9StjUM0u.LwKgoKVjL/Zp/CoKvGvUT2dOKjYxU2 est le hash pour "admin"
+INSERT INTO users (email, password_hash, role) VALUES ('admin', '$2a$10$CwTycUXWue0Thq9StjUM0u.LwKgoKVjL/Zp/CoKvGvUT2dOKjYxU2', 'admin');

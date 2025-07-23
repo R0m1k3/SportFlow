@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import authRoutes from './routes/auth';
 
 // Charger les variables d'environnement du fichier backend/.env
 dotenv.config({ path: './backend/.env' });
@@ -15,6 +16,9 @@ app.use(cors({
 
 // Middleware pour parser le JSON des requêtes
 app.use(express.json());
+
+// Routes de l'API
+app.use('/api/auth', authRoutes);
 
 // Une route "health check" pour vérifier que le serveur fonctionne
 app.get('/api/health', (req, res) => {

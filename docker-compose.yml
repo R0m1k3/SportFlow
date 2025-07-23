@@ -28,8 +28,7 @@ services:
       - DB_USER=sporflow_user
       - DB_PASSWORD=change_this_password
       - DB_NAME=sporflow_db
-      # On ajoutera la clé secrète pour les tokens JWT ici plus tard
-      # - JWT_SECRET=votre_super_secret
+      - JWT_SECRET=this-is-a-super-secret-key-and-you-should-change-it
 
   # Service pour la base de données PostgreSQL
   db:

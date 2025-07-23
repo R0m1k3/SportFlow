@@ -6,15 +6,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 
 const Login = () => {
-  const { user, login, loading } = useAuth();
+  const { user, login } = useAuth();
   const [email, setEmail] = useState("admin");
   const [password, setPassword] = useState("admin");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    login(email, password);
+    setIsLoading(true);
+    try {
+      await login(email, password);
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Une erreur inconnue est survenue.");
+      }
+      setIsLoading(false);
+    }
   };
 
   if (user) {
@@ -42,6 +54,7 @@ const Login = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="email"
                 />
               </div>
               <div className="space-y-2">
@@ -53,10 +66,11 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete="current-password"
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Connexion en cours..." : "Se connecter"}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Connexion en cours..." : "Se connecter"}
               </Button>
             </form>
           </CardContent>
