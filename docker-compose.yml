@@ -21,7 +21,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data # Persistance des données
     ports:
-      - "5432:5432" # Permet de se connecter à la DB depuis votre machine si besoin
+      - "5435:5432" # Permet de se connecter à la DB depuis votre machine sur le port 5435
 
 volumes:
   postgres_data:
