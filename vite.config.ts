@@ -8,6 +8,10 @@ export default defineConfig(() => ({
     host: "::",
     port: 8080,
   },
+  preview: {
+    host: "::",
+    port: 8080,
+  },
   plugins: [dyadComponentTagger(), react()],
   resolve: {
     alias: {
