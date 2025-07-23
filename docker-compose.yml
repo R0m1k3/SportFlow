@@ -1,16 +1,14 @@
 version: '3.8'
 
 services:
-  # Service pour le frontend (votre application React)
   frontend:
     build: .
     ports:
       - "8080:8080"
     restart: unless-stopped
     depends_on:
-      - backend # Le frontend dépend maintenant du backend
+      - backend
 
-  # Service pour le backend (notre API Node.js/Express)
   backend:
     build:
       context: .
@@ -19,18 +17,17 @@ services:
       - "3002:3001"
     restart: unless-stopped
     depends_on:
-      - db # Le backend dépend de la base de données
+      - db
     environment:
       - BACKEND_PORT=3001
       - FRONTEND_URL=http://localhost:8080
-      - DB_HOST=db # IMPORTANT: On utilise le nom du service 'db' comme hôte
-      - DB_PORT=5432 # Port standard de PostgreSQL à l'intérieur du réseau Docker
+      - DB_HOST=db
+      - DB_PORT=5432
       - DB_USER=sporflow_user
       - DB_PASSWORD=change_this_password
       - DB_NAME=sporflow_db
       - JWT_SECRET=this-is-a-super-secret-key-and-you-should-change-it
 
-  # Service pour la base de données PostgreSQL
   db:
     image: postgres:15-alpine
     restart: always
