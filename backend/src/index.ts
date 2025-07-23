@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import authRoutes from './routes/auth';
+import authRoutes from './routes/auth.js';
 
 // Charger les variables d'environnement du fichier backend/.env
 dotenv.config({ path: './backend/.env' });
