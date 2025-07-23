@@ -9,12 +9,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Login = () => {
   const { user, login, loading } = useAuth();
-  const [email, setEmail] = useState("test@example.com");
-  const [password, setPassword] = useState("password");
+  const [email, setEmail] = useState("admin");
+  const [password, setPassword] = useState("admin");
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    login(email);
+    login(email, password);
   };
 
   if (user) {
@@ -34,11 +34,11 @@ const Login = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email">Adresse e-mail</Label>
+                <Label htmlFor="email">Identifiant</Label>
                 <Input
                   id="email"
-                  type="email"
-                  placeholder="email@example.com"
+                  type="text"
+                  placeholder="admin"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -49,6 +49,7 @@ const Login = () => {
                 <Input
                   id="password"
                   type="password"
+                  placeholder="admin"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
