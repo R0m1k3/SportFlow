@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # Service pour le frontend (votre application React)
+  frontend:
+    build: .
+    ports:
+      - "8080:80" # L'application sera accessible sur http://localhost:8080
+    restart: unless-stopped
+    depends_on:
+      - db # S'assure que la base de données démarre avant l'application
+
+  # Service pour la base de données PostgreSQL
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: sporflow_db
+      POSTGRES_USER: sporflow_user
+      POSTGRES_PASSWORD: change_this_password # IMPORTANT: Changez ce mot de passe
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persistance des données
+    ports:
+      - "5432:5432" # Permet de se connecter à la DB depuis votre machine si besoin
+
+volumes:
+  postgres_data:
