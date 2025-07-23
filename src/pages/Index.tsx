@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { MadeWithDyad } from "@/components/made-with-dyad";
 import SessionForm from "@/components/SessionForm";
 import SessionList from "@/components/SessionList";
 import MonthlyStatsCard from "@/components/MonthlyStatsCard";
@@ -51,7 +50,6 @@ const Index = () => {
       <SessionForm onAddSession={addSession} />
       <MonthlyStatsCard sessions={sessions} />
       <SessionList sessions={sessions} onDeleteSession={deleteSession} />
-      <MadeWithDyad />
       <Toaster richColors position="bottom-right" />
     </div>
   );
