@@ -50,7 +50,7 @@ services:
       retries: 10
 
   auth:
-    image: supabase/gotrue:v2.128.0
+    image: supabase/gotrue:latest
     restart: always
     env_file:
       - ./supabase/auth.env
