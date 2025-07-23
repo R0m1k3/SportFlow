@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 
-const API_URL = "http://localhost:3001/api";
+const API_URL = "http://localhost:3002/api";
 
 interface User {
   id: string;

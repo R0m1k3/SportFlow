@@ -16,7 +16,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     ports:
-      - "3001:3001"
+      - "3002:3001"
     restart: unless-stopped
     depends_on:
       - db # Le backend dépend de la base de données
