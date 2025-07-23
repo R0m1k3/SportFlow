@@ -1,34 +1,28 @@
-# Étape 1: Construire l'application React
-FROM node:18-alpine AS build
+# Stage 1: Build the React application
+FROM node:20-alpine as build
 
-# Définir le répertoire de travail
 WORKDIR /app
 
-# Copier les fichiers de dépendances et les installer
-COPY package*.json ./
+# Copy package.json and install dependencies
+# Using `npm install` is more flexible here.
+COPY package.json ./
 RUN npm install
 
-# Copier le reste du code source
+# Copy the rest of the application code
 COPY . .
 
-# Construire l'application pour la production
+# Build the application for production
 RUN npm run build
 
-# Étape 2: Servir l'application avec un serveur Node.js léger
-FROM node:18-alpine
+# Stage 2: Serve the application with Nginx
+FROM nginx:stable-alpine
 
-WORKDIR /app
+# Copy the built assets from the build stage
+COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copier uniquement les dépendances de production depuis l'étape de build
-COPY --from=build /app/package*.json ./
-RUN npm install --omit=dev
+# Copy the Nginx configuration file
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copier les fichiers construits depuis l'étape de build
-COPY --from=build /app/dist ./dist
-
-# Exposer le port sur lequel le serveur va tourner
-EXPOSE 8080
-
-# Démarrer le serveur 'serve' pour servir le dossier 'dist'
-# L'option -s gère le routage pour les Single Page Applications
-CMD ["npx", "serve", "-s", "dist", "-l", "8080"]
+# Expose port 80 and start Nginx
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
