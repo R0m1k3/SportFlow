@@ -48,22 +48,22 @@ const SessionForm: React.FC<SessionFormProps> = ({ onAddSession }) => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center">Ajouter une séance</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="sessionType">Type de séance</Label>
+            <Label>Type de séance</Label>
             <RadioGroup
-              defaultValue="bike"
+              value={sessionType}
               onValueChange={(value: "bike" | "weight_training" | "walking") => setSessionType(value)}
-              className="flex space-x-4"
+              className="flex flex-wrap gap-4"
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="bike" id="bike" />
-                <Label htmlFor="bike">Vélo d'appartement</Label>
+                <Label htmlFor="bike">Vélo</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="weight_training" id="weight_training" />
@@ -75,7 +75,6 @@ const SessionForm: React.FC<SessionFormProps> = ({ onAddSession }) => {
               </div>
             </RadioGroup>
           </div>
-          {/* Le reste du formulaire reste inchangé */}
           <div className="space-y-2">
             <Label htmlFor="duration">Durée (minutes)</Label>
             <Input
@@ -89,7 +88,7 @@ const SessionForm: React.FC<SessionFormProps> = ({ onAddSession }) => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="date">Date de la séance</Label>
+            <Label>Date de la séance</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button

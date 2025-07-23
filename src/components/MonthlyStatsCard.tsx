@@ -32,33 +32,33 @@ const MonthlyStatsCard: React.FC<MonthlyStatsCardProps> = ({ sessions }) => {
   const walkingSessions = monthlySessions.filter(session => session.type === "walking").length;
 
   return (
-    <Card className="w-full max-w-md mx-auto mt-8">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center">
-          Statistiques de {format(currentMonth, "MMMM yyyy", { locale: fr })}
+          Stats de {format(currentMonth, "MMMM yyyy", { locale: fr })}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex justify-between items-center">
-          <span className="text-lg font-medium">Séances totales :</span>
-          <Badge variant="secondary" className="text-lg px-3 py-1">{totalSessions}</Badge>
+          <span className="font-medium">Séances</span>
+          <Badge variant="secondary" className="text-base px-3 py-1">{totalSessions}</Badge>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-lg font-medium">Durée totale :</span>
-          <Badge variant="secondary" className="text-lg px-3 py-1">{totalDuration} min</Badge>
+          <span className="font-medium">Durée totale</span>
+          <Badge variant="secondary" className="text-base px-3 py-1">{totalDuration} min</Badge>
         </div>
-        <div className="space-y-2">
-          <p className="text-lg font-medium">Répartition par type :</p>
+        <div className="space-y-2 pt-2">
+          <h4 className="font-medium">Répartition par type</h4>
           <div className="flex justify-between items-center pl-4">
-            <span>Vélo d'appartement :</span>
+            <span>Vélo</span>
             <Badge variant="outline">{bikeSessions}</Badge>
           </div>
           <div className="flex justify-between items-center pl-4">
-            <span>Musculation :</span>
+            <span>Musculation</span>
             <Badge variant="outline">{weightTrainingSessions}</Badge>
           </div>
           <div className="flex justify-between items-center pl-4">
-            <span>Marche :</span>
+            <span>Marche</span>
             <Badge variant="outline">{walkingSessions}</Badge>
           </div>
         </div>

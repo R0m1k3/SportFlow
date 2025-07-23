@@ -18,7 +18,8 @@ const Index = () => {
   const [sessions, setSessions] = useState<Session[]>(() => {
     if (typeof window !== 'undefined') {
       const savedSessions = localStorage.getItem("sportSessions");
-      return savedSessions ? JSON.parse(savedSessions) : [];
+      const parsedSessions = savedSessions ? JSON.parse(savedSessions) : [];
+      return parsedSessions.sort((a: Session, b: Session) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
     return [];
   });
@@ -35,7 +36,7 @@ const Index = () => {
       id: uuidv4(),
       date: newSession.date,
     };
-    setSessions((prevSessions) => [...prevSessions, sessionWithIdAndDate]);
+    setSessions((prevSessions) => [...prevSessions, sessionWithIdAndDate].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
   };
 
   const deleteSession = (id: string) => {
@@ -43,13 +44,21 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
-      <h1 className="text-4xl font-bold mb-8 text-center text-gray-800 dark:text-gray-100">
-        Mon Carnet de Séances Sportives
-      </h1>
-      <SessionForm onAddSession={addSession} />
-      <MonthlyStatsCard sessions={sessions} />
-      <SessionList sessions={sessions} onDeleteSession={deleteSession} />
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center text-gray-800 dark:text-gray-100">
+          Mon Carnet de Séances Sportives
+        </h1>
+        <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-1 flex flex-col gap-8">
+            <SessionForm onAddSession={addSession} />
+            <MonthlyStatsCard sessions={sessions} />
+          </div>
+          <div className="lg:col-span-2">
+            <SessionList sessions={sessions} onDeleteSession={deleteSession} />
+          </div>
+        </main>
+      </div>
       <Toaster richColors position="bottom-right" />
     </div>
   );
