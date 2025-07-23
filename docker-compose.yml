@@ -4,7 +4,119 @@ services:
   frontend:
     build: .
     ports:
-      - "3666:3000"
-    environment:
-      - NODE_ENV=production
+      - "3666:8080"
+    env_file:
+      - .env
+    depends_on:
+      - kong
     restart: unless-stopped
+
+  db:
+    image: supabase/postgres:15.1.0.118
+    restart: always
+    volumes:
+      - ./supabase/volumes/db:/var/lib/postgresql/data
+    env_file:
+      - ./supabase/db.env
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost", "-p", "5432" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  kong:
+    image: supabase/kong:2.8.1.4
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: "/var/lib/kong/kong.yml"
+      KONG_DNS_ORDER: "LAST,A,CNAME"
+      KONG_PLUGINS: "request-transformer,cors,key-auth"
+    volumes:
+      - ./supabase/kong.yml:/var/lib/kong/kong.yml
+    depends_on:
+      - auth
+      - rest
+      - realtime
+      - storage
+    healthcheck:
+      test: [ "CMD", "kong", "health" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  auth:
+    image: supabase/gotrue:v2.128.0
+    restart: always
+    env_file:
+      - ./supabase/auth.env
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--spider", "http://localhost:9999/health" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rest:
+    image: supabase/postgrest:v11.2.0
+    restart: always
+    env_file:
+      - ./supabase/rest.env
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--spider", "http://localhost:3000/" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  realtime:
+    image: supabase/realtime:v2.25.3
+    restart: always
+    env_file:
+      - ./supabase/realtime.env
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--spider", "http://localhost:4000/health" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  storage:
+    image: supabase/storage-api:v0.41.6
+    restart: always
+    env_file:
+      - ./supabase/storage.env
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--spider", "http://localhost:5000/status" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  studio:
+    image: supabase/studio:20240315
+    restart: always
+    ports:
+      - "8082:8082"
+    env_file:
+      - ./supabase/studio.env
+    depends_on:
+      db:
+        condition: service_healthy
+      rest:
+        condition: service_healthy
+
+volumes:
+  db:
