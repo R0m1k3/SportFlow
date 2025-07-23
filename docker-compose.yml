@@ -5,7 +5,7 @@ services:
   frontend:
     build: .
     ports:
-      - "8080:80" # L'application sera accessible sur http://localhost:8080
+      - "8080:8080" # L'application sera accessible sur http://localhost:8080
     restart: unless-stopped
     depends_on:
       - db # S'assure que la base de données démarre avant l'application
