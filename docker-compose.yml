@@ -20,6 +20,7 @@ services:
       POSTGRES_PASSWORD: change_this_password # IMPORTANT: Changez ce mot de passe
     volumes:
       - postgres_data:/var/lib/postgresql/data # Persistance des données
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql # Exécute ce script à l'initialisation
     ports:
       - "5435:5432" # Permet de se connecter à la DB depuis votre machine sur le port 5435
 
