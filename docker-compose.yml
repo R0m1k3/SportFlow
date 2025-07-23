@@ -5,10 +5,31 @@ services:
   frontend:
     build: .
     ports:
-      - "8080:8080" # L'application sera accessible sur http://localhost:8080
+      - "8080:8080"
     restart: unless-stopped
     depends_on:
-      - db # S'assure que la base de données démarre avant l'application
+      - backend # Le frontend dépend maintenant du backend
+
+  # Service pour le backend (notre API Node.js/Express)
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    depends_on:
+      - db # Le backend dépend de la base de données
+    environment:
+      - BACKEND_PORT=3001
+      - FRONTEND_URL=http://localhost:8080
+      - DB_HOST=db # IMPORTANT: On utilise le nom du service 'db' comme hôte
+      - DB_PORT=5432 # Port standard de PostgreSQL à l'intérieur du réseau Docker
+      - DB_USER=sporflow_user
+      - DB_PASSWORD=change_this_password
+      - DB_NAME=sporflow_db
+      # On ajoutera la clé secrète pour les tokens JWT ici plus tard
+      # - JWT_SECRET=votre_super_secret
 
   # Service pour la base de données PostgreSQL
   db:
@@ -17,12 +38,12 @@ services:
     environment:
       POSTGRES_DB: sporflow_db
       POSTGRES_USER: sporflow_user
-      POSTGRES_PASSWORD: change_this_password # IMPORTANT: Changez ce mot de passe
+      POSTGRES_PASSWORD: change_this_password
     volumes:
-      - postgres_data:/var/lib/postgresql/data # Persistance des données
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql # Exécute ce script à l'initialisation
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "5435:5432" # Permet de se connecter à la DB depuis votre machine sur le port 5435
+      - "5435:5432"
 
 volumes:
   postgres_data:

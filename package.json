@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "start:backend": "nodemon --watch 'backend/src/**/*.ts' --exec 'ts-node' backend/src/index.ts"
+    "start:backend": "nodemon --watch 'backend/src/**/*.ts' --exec 'ts-node' backend/src/index.ts",
+    "build:backend": "tsc -p backend/tsconfig.json"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
