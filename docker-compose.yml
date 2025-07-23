@@ -50,7 +50,7 @@ services:
       retries: 10
 
   auth:
-    image: supabase/gotrue:v2.141.2
+    image: ghcr.io/supabase/gotrue:v2.141.2
     restart: always
     env_file:
       - ./supabase/auth.env
@@ -78,7 +78,7 @@ services:
       retries: 5
 
   realtime:
-    image: supabase/realtime:v2.25.3
+    image: ghcr.io/supabase/realtime:v2.25.3
     restart: always
     env_file:
       - ./supabase/realtime.env
@@ -92,7 +92,7 @@ services:
       retries: 5
 
   storage:
-    image: supabase/storage-api:v0.41.6
+    image: ghcr.io/supabase/storage-api:v0.41.6
     restart: always
     env_file:
       - ./supabase/storage.env
@@ -106,7 +106,7 @@ services:
       retries: 5
 
   studio:
-    image: supabase/studio:latest
+    image: ghcr.io/supabase/studio:latest
     restart: always
     ports:
       - "8082:8082"
