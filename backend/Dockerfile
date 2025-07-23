@@ -2,25 +2,17 @@ FROM node:20-alpine
 
 WORKDIR /app/backend
 
-# Copy package files first for better caching
+# First copy only package files for better caching
 COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm install --production
+# Install production dependencies
+RUN npm ci --only=production
 
-# Copy source files
-COPY src ./src
-COPY tsconfig.json ./
-
-# Copy and make build script executable
-COPY scripts/build.sh ./scripts/
-RUN chmod +x ./scripts/build.sh
+# Copy the rest of the files
+COPY . .
 
 # Build the application
-RUN ./scripts/build.sh
-
-# Clean up dev dependencies
-RUN npm prune --production
+RUN npm run build
 
 EXPOSE 3001
-CMD ["node", "--no-warnings=ExperimentalWarning", "dist/index.js"]
+CMD ["node", "dist/index.js"]
