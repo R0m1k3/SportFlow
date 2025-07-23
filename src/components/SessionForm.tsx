@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -12,7 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Bike, Dumbbell, Footprints } from "lucide-react";
 
 interface SessionFormProps {
   onAddSession: (session: { type: "bike" | "weight_training" | "walking"; duration: number; date: string }) => void;
@@ -53,27 +52,38 @@ const SessionForm: React.FC<SessionFormProps> = ({ onAddSession }) => {
         <CardTitle className="text-2xl font-bold text-center">Ajouter une séance</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label>Type de séance</Label>
-            <RadioGroup
-              value={sessionType}
-              onValueChange={(value: "bike" | "weight_training" | "walking") => setSessionType(value)}
-              className="flex flex-wrap gap-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="bike" id="bike" />
-                <Label htmlFor="bike">Vélo</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="weight_training" id="weight_training" />
-                <Label htmlFor="weight_training">Musculation</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="walking" id="walking" />
-                <Label htmlFor="walking">Marche</Label>
-              </div>
-            </RadioGroup>
+            <div className="grid grid-cols-3 gap-2 pt-1">
+              <Button
+                type="button"
+                variant={sessionType === 'bike' ? 'secondary' : 'outline'}
+                onClick={() => setSessionType('bike')}
+                className="flex flex-col h-16 sm:h-20 sm:flex-row sm:gap-2"
+              >
+                <Bike className="h-6 w-6 mb-1 sm:mb-0" />
+                <span className="text-xs sm:text-sm">Vélo</span>
+              </Button>
+              <Button
+                type="button"
+                variant={sessionType === 'weight_training' ? 'secondary' : 'outline'}
+                onClick={() => setSessionType('weight_training')}
+                className="flex flex-col h-16 sm:h-20 sm:flex-row sm:gap-2"
+              >
+                <Dumbbell className="h-6 w-6 mb-1 sm:mb-0" />
+                <span className="text-xs sm:text-sm">Muscu</span>
+              </Button>
+              <Button
+                type="button"
+                variant={sessionType === 'walking' ? 'secondary' : 'outline'}
+                onClick={() => setSessionType('walking')}
+                className="flex flex-col h-16 sm:h-20 sm:flex-row sm:gap-2"
+              >
+                <Footprints className="h-6 w-6 mb-1 sm:mb-0" />
+                <span className="text-xs sm:text-sm">Marche</span>
+              </Button>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="duration">Durée (minutes)</Label>
