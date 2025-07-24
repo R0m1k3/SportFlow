@@ -1,56 +1,52 @@
-import { v4 as uuidv4 } from 'uuid';
+const API_URL = import.meta.env.VITE_API_URL;
 
 export interface Session {
   id: string;
-  user_id: string;
+  user_id?: string;
   type: "bike" | "weight_training" | "walking";
   duration: number;
   date: string;
   created_at?: string;
 }
 
-// Données de simulation
-let sessions: Session[] = [
-  {
-    id: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
-    user_id: 'mock-user-id',
-    type: 'bike',
-    duration: 45,
-    date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString().split('T')[0],
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "b2c3d4e5-f6a7-8901-2345-67890abcdef0",
-    user_id: 'mock-user-id',
-    type: 'weight_training',
-    duration: 60,
-    date: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString().split('T')[0],
-    created_at: new Date().toISOString(),
-  },
-];
+const getHeaders = (token: string) => ({
+  "Content-Type": "application/json",
+  "Authorization": `Bearer ${token}`,
+});
 
-// Simuler la latence du réseau
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
-
-export const fetchSessions = async (userId: string | undefined): Promise<Session[]> => {
-  if (!userId) return [];
-  await delay(300);
-  return [...sessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+export const fetchSessions = async (token: string): Promise<Session[]> => {
+  const response = await fetch(`${API_URL}/sessions`, {
+    headers: getHeaders(token),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to fetch sessions');
+  }
+  const data = await response.json();
+  return data.map((s: any) => ({ ...s, date: s.date.split('T')[0] }));
 };
 
-export const addSession = async (session: Omit<Session, 'id' | 'created_at'>): Promise<Session> => {
-  await delay(300);
-  const newSession: Session = {
-    ...session,
-    id: uuidv4(),
-    created_at: new Date().toISOString(),
-  };
-  sessions.push(newSession);
-  return newSession;
+export const addSession = async (
+  session: Omit<Session, 'id' | 'created_at' | 'user_id'>,
+  token: string
+): Promise<Session> => {
+  const response = await fetch(`${API_URL}/sessions`, {
+    method: 'POST',
+    headers: getHeaders(token),
+    body: JSON.stringify(session),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to add session');
+  }
+  return response.json();
 };
 
-export const deleteSession = async (id: string): Promise<{ id: string }> => {
-  await delay(300);
-  sessions = sessions.filter(s => s.id !== id);
-  return { id };
+export const deleteSession = async (id: string, token: string): Promise<{ id: string }> => {
+  const response = await fetch(`${API_URL}/sessions/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders(token),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to delete session');
+  }
+  return response.json();
 };

@@ -21,19 +21,22 @@ interface Session {
 }
 
 const Index = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: sessions = [], isLoading } = useQuery({
     queryKey: ["sessions", user?.id],
-    queryFn: () => fetchSessions(user?.id),
-    enabled: !!user,
+    queryFn: () => {
+      if (!token) return Promise.resolve([]);
+      return fetchSessions(token);
+    },
+    enabled: !!user && !!token,
   });
 
   const addSession = async (newSession: { type: "bike" | "weight_training" | "walking"; duration: number; date: string }) => {
-    if (!user) return;
+    if (!user || !token) return;
     try {
-      await addSessionApi({ ...newSession, user_id: user.id });
+      await addSessionApi(newSession, token);
       toast.success("Séance ajoutée avec succès !");
       queryClient.invalidateQueries({ queryKey: ["sessions", user.id] });
     } catch (error) {
@@ -43,9 +46,9 @@ const Index = () => {
   };
 
   const deleteSession = async (id: string) => {
-    if (!user) return;
+    if (!user || !token) return;
     try {
-      await deleteSessionApi(id);
+      await deleteSessionApi(id, token);
       toast.success("Séance supprimée avec succès !");
       queryClient.invalidateQueries({ queryKey: ["sessions", user?.id] });
     } catch (error) {
