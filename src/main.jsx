@@ -19,24 +19,26 @@ const api = {
 const DEFAULT_PREPARATION_SECONDS = 8;
 
 const exerciseGuidance = {
-  'marche-sur-place.png': ['Debout, dos droit', 'Marche lentement sur place', 'Garde les genoux bas'],
-  'cercles-epaules.png': ['Bras relâchés', 'Fais de petits cercles avec les épaules', 'Ne lève pas les bras'],
-  'cercles-chevilles.png': ['Assis ou bien stable', 'Tourne une cheville doucement', 'Change de côté sans forcer'],
-  'gainage-mur.png': ['Mains sur le mur à hauteur de poitrine', 'Recule les pieds et garde le corps droit', 'Arrête si l’épaule tire'],
-  'gainage-lateral-simple.png': ['Allonge-toi sur le côté, genoux pliés', 'Soulève très légèrement le bassin', 'Appui doux sur l’avant-bras'],
-  'respiration-abdominale.png': ['Allongé, genoux pliés', 'Expire en rentrant doucement le ventre', 'Ne bloque jamais la respiration'],
-  'talon-glisse.png': ['Allongé, dos stable', 'Fais glisser un talon puis reviens', 'Mouvement lent et court'],
-  'genou-leve-alterne.png': ['Allongé, ventre contracté', 'Lève un genou puis repose-le', 'Garde le bas du dos stable'],
-  'velo-appartement.png': ['Assis confortablement', 'Pédale facile à modéré', 'Tu dois pouvoir parler'],
-  'marche-douce.png': ['Terrain plat', 'Avance avec des pas souples', 'Stop si douleur aux pieds'],
-  'tirage-elastique-coude-corps.png': ['Élastique fixé devant toi', 'Tire les coudes vers l’arrière', 'Coudes près du corps'],
-  'rotation-externe-elastique.png': ['Coude collé au corps', 'Tourne la main vers l’extérieur', 'Amplitude courte et très légère'],
-  'serrage-omoplates.png': ['Debout ou assis, dos droit', 'Rapproche doucement les omoplates', 'Épaules basses'],
-  'curl-biceps-leger.png': ['Coudes près du corps', 'Plie les avant-bras puis redescends', 'Sans élan, charge légère'],
-  'extension-triceps-elastique-bas.png': ['Coude près du corps', 'Tends l’avant-bras vers le bas', 'Ne monte pas le coude'],
-  'pompes-mur.png': ['Mains sur le mur à hauteur de poitrine', 'Plie peu les bras puis repousse', 'Corps droit, sans douleur'],
-  'rowing-bouteille-leger.png': ['Buste légèrement incliné, dos droit', 'Tire le coude vers l’arrière', 'Bouteille très légère']
+  'marche-sur-place.png': ['Mets-toi debout près d’un mur ou d’une chaise si besoin.', 'Marche sur place lentement, comme une marche normale, sans lever haut les genoux.', 'Ne cherche pas à transpirer vite : reste souple, sans impact.'],
+  'cercles-epaules.png': ['Reste debout ou assis, bras relâchés le long du corps.', 'Fais rouler uniquement les épaules en petits cercles lents.', 'Ne lève pas les bras et ne force pas l’amplitude.'],
+  'cercles-chevilles.png': ['Assieds-toi ou tiens-toi à un support stable.', 'Décolle légèrement un pied et dessine de petits cercles avec la cheville.', 'Le genou et la hanche restent calmes, seul le pied tourne.'],
+  'gainage-mur.png': ['Place tes deux mains à plat sur le mur, à hauteur de poitrine.', 'Recule les pieds de 30 à 60 cm et garde le corps droit comme une planche douce.', 'Ne plie pas la taille, ne monte pas les épaules, stop si l’épaule tire.'],
+  'gainage-lateral-simple.png': ['Allonge-toi sur le côté, genoux pliés, avant-bras posé au sol.', 'Contracte le ventre puis soulève très légèrement le bassin.', 'Si l’épaule gêne, reste allongé et contracte seulement les abdos.'],
+  'respiration-abdominale.png': ['Allonge-toi sur le dos, genoux pliés, pieds au sol.', 'Expire lentement en rentrant doucement le ventre vers le sol.', 'Ne bloque jamais la respiration, tout doit rester confortable.'],
+  'talon-glisse.png': ['Allonge-toi sur le dos, genoux pliés, bas du dos stable.', 'Fais glisser un talon vers l’avant, puis ramène-le lentement.', 'Arrête le mouvement avant que le bas du dos ne bouge.'],
+  'genou-leve-alterne.png': ['Allonge-toi sur le dos, genoux pliés, ventre légèrement serré.', 'Lève un genou de quelques centimètres puis repose-le, puis change de jambe.', 'Ne tire pas avec le dos et ne va pas vite.'],
+  'velo-appartement.png': ['Régle la selle pour pédaler sans tendre complètement les genoux.', 'Pédale à un rythme facile à modéré, régulier.', 'Tu dois pouvoir parler pendant l’effort.'],
+  'marche-douce.png': ['Choisis un terrain plat et des chaussures confortables.', 'Marche à allure facile, pas courts et souples.', 'Réduis ou arrête si les pieds deviennent douloureux.'],
+  'tirage-elastique-coude-corps.png': ['Fixe l’élastique devant toi, tiens les poignées, coudes près des côtes.', 'Tire les coudes vers l’arrière comme si tu voulais rapprocher les omoplates.', 'Épaules basses, pas de tirage fort, aucune douleur.'],
+  'rotation-externe-elastique.png': ['Colle le coude contre le corps, avant-bras plié à angle droit.', 'Tourne doucement la main vers l’extérieur sur une petite amplitude.', 'Exercice très léger : stop immédiat si douleur.'],
+  'serrage-omoplates.png': ['Assis ou debout, dos droit, bras détendus.', 'Rapproche doucement les omoplates, tiens deux secondes, relâche.', 'Ne hausse pas les épaules et ne cambre pas le dos.'],
+  'curl-biceps-leger.png': ['Tiens deux petites bouteilles, coudes collés près du corps.', 'Plie les avant-bras lentement puis redescends lentement.', 'Pas d’élan et pas de charge lourde.'],
+  'extension-triceps-elastique-bas.png': ['Assis, garde le coude près du corps, jamais haut.', 'Tends doucement l’avant-bras vers le bas ou légèrement vers l’arrière.', 'Le bras ne passe jamais au-dessus de l’épaule.'],
+  'pompes-mur.png': ['Place les mains sur le mur à hauteur de poitrine.', 'Plie légèrement les bras puis repousse doucement le mur.', 'Le mouvement reste court, stop si l’épaule tire.'],
+  'rowing-bouteille-leger.png': ['Buste légèrement incliné, dos droit, une bouteille très légère en main.', 'Tire le coude vers l’arrière sans monter l’épaule.', 'Le dos ne s’arrondit pas et la charge reste facile.']
 };
+
+const guidanceLabels = ['Position', 'Mouvement', 'À éviter'];
 
 function App() {
   const [tab, setTab] = useState('home');
@@ -210,9 +212,12 @@ function SessionPage({ today, onRefresh }) {
         <p>{exercise.instructions}</p>
       </div>
       <div className="guidance-grid" aria-label="Comment faire l’exercice">
-        <div><strong>1</strong><span>{guidance[0]}</span></div>
-        <div><strong>2</strong><span>{guidance[1]}</span></div>
-        <div><strong>3</strong><span>{guidance[2]}</span></div>
+        {guidance.map((text, guidanceIndex) => (
+          <div key={guidanceLabels[guidanceIndex]}>
+            <strong>{guidanceLabels[guidanceIndex]}</strong>
+            <span>{text}</span>
+          </div>
+        ))}
       </div>
       <div className={`timer ${phase === 'prep' ? 'prep' : ''} ${isLastSeconds ? 'urgent' : ''}`}>
         <span>{formatTime(remaining)}</span>

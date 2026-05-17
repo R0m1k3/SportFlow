@@ -117,12 +117,12 @@ function instructionPoster(title, cue, cards) {
     <rect x="42" y="38" width="816" height="564" rx="24" fill="#ffffff"/>
     <text x="450" y="92" text-anchor="middle" font-family="Arial, sans-serif" font-size="38" font-weight="850" fill="#263b3a">${esc(title)}</text>
     <text x="450" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="23" font-weight="750" fill="#3f6f68">${esc(cue)}</text>
-    ${largeStep(85, 172, 1, 'Position', cards[0], '#edf4f1', '#3f6f68')}
-    ${largeStep(85, 315, 2, 'Mouvement', cards[1], '#f8fbf9', '#3f6f68')}
-    ${largeStep(85, 458, 3, 'A surveiller', cards[2], '#fff7e5', '#e5a85c')}
-    <path d="M735 250 C775 295 775 372 735 420" stroke="#e5a85c" stroke-width="14" fill="none" stroke-linecap="round"/>
-    <path d="M735 420 l-10 -36 l37 8" stroke="#e5a85c" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="724" y="332" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="850" fill="#8a501f">lentement</text>
+    <rect x="142" y="190" width="616" height="230" rx="22" fill="#f8fbf9" stroke="#d8e0dc" stroke-width="4"/>
+    <text x="450" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="900" fill="#263b3a">Photo réelle non fournie</text>
+    <text x="450" y="314" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" font-weight="800" fill="#3f6f68">Suis les étapes écrites sous l’image</text>
+    <text x="450" y="362" text-anchor="middle" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#697674">Pour remplacer cette fiche, ajoute une vraie image</text>
+    <text x="450" y="394" text-anchor="middle" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#697674">dans public/exercises avec ce nom de fichier</text>
+    ${largeStep(150, 456, 1, 'À faire', cards[1], '#edf4f1', '#3f6f68')}
   </svg>`;
 }
 
