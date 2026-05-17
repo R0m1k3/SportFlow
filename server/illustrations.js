@@ -86,19 +86,71 @@ const map = {
   }
 };
 
+const notes = {
+  'marche-sur-place.png': ['Debout, dos droit', 'Marcher lentement sur place', 'Genoux bas, sans impact'],
+  'cercles-epaules.png': ['Bras relaches', 'Petits cercles des epaules', 'Ne pas lever les bras'],
+  'cercles-chevilles.png': ['Assis ou appui stable', 'Tourner une cheville', 'Changer de cote doucement'],
+  'gainage-mur.png': ['Mains sur le mur', 'Corps droit, ventre serre', 'Arreter si epaule douloureuse'],
+  'gainage-lateral-simple.png': ['Cote au sol, genoux plies', 'Soulever un peu le bassin', 'Appui tres leger sur l avant-bras'],
+  'respiration-abdominale.png': ['Allonge, genoux plies', 'Expirer en rentrant le ventre', 'Ne jamais bloquer la respiration'],
+  'talon-glisse.png': ['Allonge, dos stable', 'Glisser le talon puis revenir', 'Mouvement lent et court'],
+  'genou-leve-alterne.png': ['Allonge, ventre contracte', 'Lever un genou puis reposer', 'Bas du dos stable'],
+  'velo-appartement.png': ['Assis sur le velo', 'Pedaler facile a modere', 'Pouvoir parler pendant l effort'],
+  'marche-douce.png': ['Terrain plat', 'Pas souple et regulier', 'Stop si douleur aux pieds'],
+  'tirage-elastique-coude-corps.png': ['Elastique fixe devant', 'Tirer les coudes en arriere', 'Coudes pres du corps'],
+  'rotation-externe-elastique.png': ['Coude colle au corps', 'Tourner la main vers dehors', 'Amplitude courte, tres leger'],
+  'serrage-omoplates.png': ['Debout ou assis', 'Rapprocher les omoplates', 'Epaules basses'],
+  'curl-biceps-leger.png': ['Coudes pres du corps', 'Plier puis redescendre', 'Charge tres legere, sans elan'],
+  'extension-triceps-elastique-bas.png': ['Coude pres du corps', 'Tendre l avant-bras vers le bas', 'Ne pas monter le coude'],
+  'pompes-mur.png': ['Mains hauteur poitrine', 'Plier peu puis repousser', 'Mouvement court sans douleur'],
+  'rowing-bouteille-leger.png': ['Dos droit, buste incline', 'Tirer le coude en arriere', 'Bouteille tres legere']
+};
+
 export function renderExerciseSvg(filename) {
   const item = map[filename] || map['marche-sur-place.png'];
-  return frame(item.title, item.cue, item.body);
+  return frame(item.title, item.cue, item.body, notes[filename] || notes['marche-sur-place.png']);
 }
 
-function frame(title, cue, body) {
+function frame(title, cue, body, cards) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="640" viewBox="0 0 900 640" role="img" aria-label="${esc(title)}">
     <rect width="900" height="640" fill="#edf4f1"/>
     <rect x="42" y="38" width="816" height="564" rx="24" fill="#ffffff"/>
     <text x="450" y="92" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" font-weight="800" fill="#263b3a">${esc(title)}</text>
     <text x="450" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#3f6f68">${esc(cue)}</text>
     ${body}
+    ${instructionCards(cards)}
   </svg>`;
+}
+
+function instructionCards(cards) {
+  return cards.map((text, index) => {
+    const x = 92 + index * 246;
+    const labels = ['Depart', 'Mouvement', 'Vigilance'];
+    const lines = noteLines(text);
+    return `<g>
+      <rect x="${x}" y="532" width="222" height="52" rx="10" fill="${index === 2 ? '#fff7e5' : '#edf4f1'}" stroke="${index === 2 ? '#f0d9a7' : '#d8e0dc'}" stroke-width="2"/>
+      <circle cx="${x + 25}" cy="558" r="16" fill="${index === 2 ? '#e5a85c' : '#3f6f68'}"/>
+      <text x="${x + 25}" y="564" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="800" fill="#ffffff">${index + 1}</text>
+      <text x="${x + 50}" y="550" font-family="Arial, sans-serif" font-size="13" font-weight="800" fill="#3f6f68">${labels[index]}</text>
+      <text x="${x + 50}" y="568" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#263b3a">
+        ${lines.map((lineText, lineIndex) => `<tspan x="${x + 50}" dy="${lineIndex === 0 ? 0 : 16}">${esc(lineText)}</tspan>`).join('')}
+      </text>
+    </g>`;
+  }).join('');
+}
+
+function noteLines(text) {
+  const words = String(text).split(' ');
+  const lines = [''];
+  for (const word of words) {
+    const current = lines[lines.length - 1];
+    if (`${current} ${word}`.trim().length > 24 && lines.length < 2) {
+      lines.push(word);
+    } else {
+      lines[lines.length - 1] = `${current} ${word}`.trim();
+    }
+  }
+  return lines;
 }
 
 function esc(value) {
