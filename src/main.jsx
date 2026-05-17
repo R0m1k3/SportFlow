@@ -138,6 +138,7 @@ function SessionPage({ today, onRefresh }) {
   const [series, setSeries] = useState(1);
   const [remaining, setRemaining] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [zoomImage, setZoomImage] = useState(false);
   const exercise = workout.exercises[index];
   const next = workout.exercises[index + 1];
   const preparationSeconds = today.settings.preparationSeconds || DEFAULT_PREPARATION_SECONDS;
@@ -205,7 +206,10 @@ function SessionPage({ today, onRefresh }) {
 
   return (
     <section className="session">
-      <img className="exercise-image" src={`/exercises/${exercise.image_path}`} alt={exercise.name} />
+      <button className="exercise-image-button" onClick={() => setZoomImage(true)} aria-label="Agrandir l’image de l’exercice">
+        <img className="exercise-image" src={`/exercises/${exercise.image_path}`} alt={exercise.name} />
+        <span>Agrandir l’image</span>
+      </button>
       <div className="session-title">
         <p className="eyebrow">{phaseLabel}</p>
         <h1>{exercise.name}</h1>
@@ -240,6 +244,12 @@ function SessionPage({ today, onRefresh }) {
           <button onClick={() => feedback('too_easy')}>Trop facile</button>
           <button onClick={() => feedback('too_hard')}>Trop difficile</button>
           <button className="danger" onClick={() => feedback('pain', exercise.body_area === 'pieds' ? 'pieds' : 'épaule')}>Douleur</button>
+        </div>
+      )}
+      {zoomImage && (
+        <div className="image-modal" role="dialog" aria-modal="true" aria-label={`Image de ${exercise.name}`} onClick={() => setZoomImage(false)}>
+          <button className="image-modal-close" onClick={() => setZoomImage(false)}>Fermer</button>
+          <img src={`/exercises/${exercise.image_path}`} alt={exercise.name} />
         </div>
       )}
     </section>

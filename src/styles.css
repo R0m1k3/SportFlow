@@ -212,14 +212,31 @@ h2 {
   gap: 0.85rem;
 }
 
+.exercise-image-button {
+  width: 100%;
+  min-height: auto;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+  background: transparent;
+  color: var(--green);
+  font-size: 0.86rem;
+}
+
 .exercise-image {
   width: 100%;
-  max-height: 30dvh;
+  max-height: 42dvh;
   aspect-ratio: 16 / 10;
-  object-fit: contain;
+  object-fit: cover;
+  object-position: center;
   background: white;
   border: 1px solid var(--border);
   border-radius: 8px;
+}
+
+.exercise-image-button span {
+  justify-self: center;
+  font-weight: 850;
 }
 
 .session-title {
@@ -435,6 +452,33 @@ input {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 1rem;
+}
+
+.image-modal {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(10, 20, 19, 0.82);
+}
+
+.image-modal img {
+  width: min(100%, 1180px);
+  max-height: 86dvh;
+  object-fit: contain;
+  border-radius: 8px;
+  background: white;
+}
+
+.image-modal-close {
+  position: fixed;
+  top: calc(0.8rem + env(safe-area-inset-top));
+  right: 0.8rem;
+  min-height: 44px;
+  color: white;
+  background: rgba(63, 111, 104, 0.95);
 }
 
 @media (min-width: 760px) {
