@@ -108,18 +108,141 @@ const notes = {
 
 export function renderExerciseSvg(filename) {
   const item = map[filename] || map['marche-sur-place.png'];
-  return frame(item.title, item.cue, item.body, notes[filename] || notes['marche-sur-place.png']);
+  return frame(filename, item.title, item.cue, notes[filename] || notes['marche-sur-place.png']);
 }
 
-function frame(title, cue, body, cards) {
+function frame(filename, title, cue, cards) {
+  const steps = exerciseSteps(filename);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="640" viewBox="0 0 900 640" role="img" aria-label="${esc(title)}">
     <rect width="900" height="640" fill="#edf4f1"/>
     <rect x="42" y="38" width="816" height="564" rx="24" fill="#ffffff"/>
     <text x="450" y="92" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" font-weight="800" fill="#263b3a">${esc(title)}</text>
     <text x="450" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#3f6f68">${esc(cue)}</text>
-    ${body}
+    ${panel(72, '1. Position de depart', steps.startCaption, steps.start)}
+    ${panel(468, '2. Mouvement', steps.endCaption, steps.end)}
+    ${arrow(410, 315, 490, 315, '')}
     ${instructionCards(cards)}
   </svg>`;
+}
+
+function panel(x, title, caption, body) {
+  return `<g>
+    <rect x="${x}" y="158" width="360" height="342" rx="18" fill="#f8fbf9" stroke="#d8e0dc" stroke-width="3"/>
+    <text x="${x + 180}" y="194" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="850" fill="#263b3a">${esc(title)}</text>
+    <text x="${x + 180}" y="474" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="#3f6f68">${esc(caption)}</text>
+    <g transform="translate(${x - 112} 78) scale(0.65)">
+      ${body}
+    </g>
+  </g>`;
+}
+
+function exerciseSteps(filename) {
+  const easyStand = stand({ arms: 'relaxed' }) + ground();
+  const steps = {
+    'marche-sur-place.png': {
+      startCaption: 'Pieds au sol, bras detendus',
+      endCaption: 'Lever un pied, puis alterner',
+      start: easyStand,
+      end: stand({ leftLeg: 'up', arms: 'walk' }) + arrow(520, 360, 520, 285, 'Monter') + ground()
+    },
+    'cercles-epaules.png': {
+      startCaption: 'Bras le long du corps',
+      endCaption: 'Rouler les epaules en petit cercle',
+      start: easyStand,
+      end: stand({ arms: 'relaxed' }) + circleArrow(450, 245, 82, 'Epaules')
+    },
+    'cercles-chevilles.png': {
+      startCaption: 'Assis, une jambe avancee',
+      endCaption: 'Tourner la cheville lentement',
+      start: chair(250, 295) + seated({ x: 390, y: 245, leg: 'extended' }),
+      end: chair(250, 295) + seated({ x: 390, y: 245, leg: 'extended' }) + circleArrow(575, 430, 52, 'Tourner')
+    },
+    'gainage-mur.png': {
+      startCaption: 'Mains sur le mur',
+      endCaption: 'Reculer les pieds, corps droit',
+      start: wall(660) + stand({ arms: 'row' }) + line(505, 285, 645, 285) + ground(),
+      end: wall(660) + plankWall() + line(255, 250, 600, 350, '#e5a85c', 10)
+    },
+    'gainage-lateral-simple.png': {
+      startCaption: 'Allonge sur le cote',
+      endCaption: 'Soulever un peu le bassin',
+      start: mat() + sideLying(),
+      end: mat() + sidePlank() + arrow(455, 365, 455, 315, 'Monter')
+    },
+    'respiration-abdominale.png': {
+      startCaption: 'Allonge, genoux plies',
+      endCaption: 'Expirer, ventre vers le sol',
+      start: mat() + lyingKnees(),
+      end: mat() + lyingKnees() + arrow(445, 345, 405, 345, 'Ventre')
+    },
+    'talon-glisse.png': {
+      startCaption: 'Genoux plies, talons au sol',
+      endCaption: 'Glisser un talon devant',
+      start: mat() + lyingKnees(),
+      end: mat() + lyingHeelSlide() + arrow(510, 430, 650, 430, 'Glisser')
+    },
+    'genou-leve-alterne.png': {
+      startCaption: 'Allonge, ventre serre',
+      endCaption: 'Lever un genou, puis reposer',
+      start: mat() + lyingKnees(),
+      end: mat() + lyingKneeLift() + arrow(545, 410, 515, 310, 'Lever')
+    },
+    'velo-appartement.png': {
+      startCaption: 'Assis, mains legeres',
+      endCaption: 'Pedaler sans forcer',
+      start: bike() + seated({ x: 430, y: 185, leg: 'normal' }),
+      end: bike() + seated({ x: 430, y: 185, leg: 'bike' }) + circleArrow(500, 430, 58, 'Pedaler')
+    },
+    'marche-douce.png': {
+      startCaption: 'Debout, terrain plat',
+      endCaption: 'Faire un pas souple',
+      start: easyStand,
+      end: stand({ leftLeg: 'forward', rightLeg: 'back', arms: 'walk' }) + arrow(520, 510, 640, 510, 'Avancer') + ground()
+    },
+    'tirage-elastique-coude-corps.png': {
+      startCaption: 'Elastique devant soi',
+      endCaption: 'Coudes vers arriere',
+      start: anchor(660, 270) + stand({ arms: 'external' }) + elastic(660, 270, 555, 300),
+      end: anchor(660, 270) + stand({ arms: 'row' }) + elastic(660, 270, 495, 285) + elastic(660, 285, 500, 315) + arrow(525, 300, 455, 300, 'Tirer')
+    },
+    'rotation-externe-elastique.png': {
+      startCaption: 'Coude colle au corps',
+      endCaption: 'Main vers exterieur',
+      start: anchor(650, 310) + stand({ arms: 'row' }) + elastic(650, 310, 505, 315),
+      end: anchor(650, 310) + stand({ arms: 'external' }) + elastic(650, 310, 505, 315) + arrow(500, 315, 560, 275, 'Tourner')
+    },
+    'serrage-omoplates.png': {
+      startCaption: 'Dos droit, epaules basses',
+      endCaption: 'Omoplates se rapprochent',
+      start: stand({ back: true, arms: 'relaxed' }) + ground(),
+      end: stand({ back: true, arms: 'relaxed' }) + arrow(360, 270, 425, 270, '') + arrow(540, 270, 475, 270, 'Serrer') + ground()
+    },
+    'curl-biceps-leger.png': {
+      startCaption: 'Bras tendus, coudes fixes',
+      endCaption: 'Plier les avant-bras',
+      start: stand({ arms: 'relaxed' }) + bottle(340, 365) + bottle(560, 365) + ground(),
+      end: stand({ arms: 'curl' }) + bottle(340, 335) + bottle(560, 335) + arrow(545, 360, 545, 295, 'Plier') + ground()
+    },
+    'extension-triceps-elastique-bas.png': {
+      startCaption: 'Coude pres du corps',
+      endCaption: 'Tendre vers le bas',
+      start: anchor(645, 455) + seated({ x: 410, y: 210, leg: 'normal', arm: 'normal' }) + elastic(645, 455, 505, 335),
+      end: anchor(645, 455) + seated({ x: 410, y: 210, leg: 'normal', arm: 'triceps' }) + elastic(645, 455, 505, 335) + arrow(505, 335, 530, 390, 'Tendre')
+    },
+    'pompes-mur.png': {
+      startCaption: 'Mains sur mur, corps droit',
+      endCaption: 'Plier peu, puis repousser',
+      start: wall(660) + plankWall(),
+      end: wall(660) + pushWall() + arrow(530, 300, 590, 300, 'Pousser')
+    },
+    'rowing-bouteille-leger.png': {
+      startCaption: 'Buste incline, dos droit',
+      endCaption: 'Coude vers arriere',
+      start: bentRowStart() + bottle(560, 430),
+      end: bentRow() + bottle(515, 370) + arrow(520, 360, 440, 300, 'Tirer')
+    }
+  };
+  return steps[filename] || steps['marche-sur-place.png'];
 }
 
 function instructionCards(cards) {
@@ -258,6 +381,10 @@ function sidePlank() {
   return head(270, 370) + line(305, 385, 500, 385, '#263b3a', 24) + line(335, 410, 280, 470) + line(500, 385, 590, 470) + line(500, 385, 640, 470) + line(340, 385, 340, 470);
 }
 
+function sideLying() {
+  return head(260, 390) + line(295, 405, 525, 405, '#263b3a', 24) + line(335, 430, 290, 470) + line(520, 405, 610, 470) + line(500, 410, 570, 470);
+}
+
 function lyingKnees() {
   return head(245, 382) + line(280, 395, 470, 395, '#263b3a', 24) + line(465, 395, 545, 340) + line(545, 340, 620, 470) + line(435, 395, 505, 345) + line(505, 345, 565, 470);
 }
@@ -276,4 +403,8 @@ function bike() {
 
 function bentRow() {
   return head(360, 245) + line(390, 270, 495, 330, '#263b3a', 24) + line(485, 330, 520, 385) + line(480, 330, 410, 500) + line(500, 335, 590, 500) + line(430, 295, 520, 350) + ground();
+}
+
+function bentRowStart() {
+  return head(360, 245) + line(390, 270, 495, 330, '#263b3a', 24) + line(485, 330, 565, 430) + line(480, 330, 410, 500) + line(500, 335, 590, 500) + line(430, 295, 520, 350) + ground();
 }
