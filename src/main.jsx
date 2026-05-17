@@ -18,6 +18,26 @@ const api = {
 
 const DEFAULT_PREPARATION_SECONDS = 8;
 
+const exerciseGuidance = {
+  'marche-sur-place.png': ['Debout, dos droit', 'Marche lentement sur place', 'Garde les genoux bas'],
+  'cercles-epaules.png': ['Bras relâchés', 'Fais de petits cercles avec les épaules', 'Ne lève pas les bras'],
+  'cercles-chevilles.png': ['Assis ou bien stable', 'Tourne une cheville doucement', 'Change de côté sans forcer'],
+  'gainage-mur.png': ['Mains sur le mur à hauteur de poitrine', 'Recule les pieds et garde le corps droit', 'Arrête si l’épaule tire'],
+  'gainage-lateral-simple.png': ['Allonge-toi sur le côté, genoux pliés', 'Soulève très légèrement le bassin', 'Appui doux sur l’avant-bras'],
+  'respiration-abdominale.png': ['Allongé, genoux pliés', 'Expire en rentrant doucement le ventre', 'Ne bloque jamais la respiration'],
+  'talon-glisse.png': ['Allongé, dos stable', 'Fais glisser un talon puis reviens', 'Mouvement lent et court'],
+  'genou-leve-alterne.png': ['Allongé, ventre contracté', 'Lève un genou puis repose-le', 'Garde le bas du dos stable'],
+  'velo-appartement.png': ['Assis confortablement', 'Pédale facile à modéré', 'Tu dois pouvoir parler'],
+  'marche-douce.png': ['Terrain plat', 'Avance avec des pas souples', 'Stop si douleur aux pieds'],
+  'tirage-elastique-coude-corps.png': ['Élastique fixé devant toi', 'Tire les coudes vers l’arrière', 'Coudes près du corps'],
+  'rotation-externe-elastique.png': ['Coude collé au corps', 'Tourne la main vers l’extérieur', 'Amplitude courte et très légère'],
+  'serrage-omoplates.png': ['Debout ou assis, dos droit', 'Rapproche doucement les omoplates', 'Épaules basses'],
+  'curl-biceps-leger.png': ['Coudes près du corps', 'Plie les avant-bras puis redescends', 'Sans élan, charge légère'],
+  'extension-triceps-elastique-bas.png': ['Coude près du corps', 'Tends l’avant-bras vers le bas', 'Ne monte pas le coude'],
+  'pompes-mur.png': ['Mains sur le mur à hauteur de poitrine', 'Plie peu les bras puis repousse', 'Corps droit, sans douleur'],
+  'rowing-bouteille-leger.png': ['Buste légèrement incliné, dos droit', 'Tire le coude vers l’arrière', 'Bouteille très légère']
+};
+
 function App() {
   const [tab, setTab] = useState('home');
   const [today, setToday] = useState(null);
@@ -119,6 +139,7 @@ function SessionPage({ today, onRefresh }) {
   const exercise = workout.exercises[index];
   const next = workout.exercises[index + 1];
   const preparationSeconds = today.settings.preparationSeconds || DEFAULT_PREPARATION_SECONDS;
+  const guidance = exerciseGuidance[exercise?.image_path] || [exercise?.instructions, 'Mouvement lent et contrôlé', 'Arrête si douleur'];
 
   useEffect(() => {
     if (!exercise) return;
@@ -187,6 +208,11 @@ function SessionPage({ today, onRefresh }) {
         <p className="eyebrow">{phaseLabel}</p>
         <h1>{exercise.name}</h1>
         <p>{exercise.instructions}</p>
+      </div>
+      <div className="guidance-grid" aria-label="Comment faire l’exercice">
+        <div><strong>1</strong><span>{guidance[0]}</span></div>
+        <div><strong>2</strong><span>{guidance[1]}</span></div>
+        <div><strong>3</strong><span>{guidance[2]}</span></div>
       </div>
       <div className={`timer ${phase === 'prep' ? 'prep' : ''} ${isLastSeconds ? 'urgent' : ''}`}>
         <span>{formatTime(remaining)}</span>

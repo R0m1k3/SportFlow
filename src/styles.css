@@ -208,7 +208,7 @@ h2 {
 .session {
   min-height: calc(100dvh - 118px);
   display: grid;
-  grid-template-rows: auto auto auto auto 1fr;
+  grid-template-rows: auto auto auto auto auto 1fr;
   gap: 0.85rem;
 }
 
@@ -229,6 +229,40 @@ h2 {
 
 .session-title p:last-child {
   color: #4f5c5a;
+}
+
+.guidance-grid {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.guidance-grid div {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 48px;
+  padding: 0.55rem 0.65rem;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.guidance-grid strong {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: white;
+  background: var(--green);
+  font-size: 0.95rem;
+}
+
+.guidance-grid span {
+  color: var(--green-dark);
+  font-weight: 750;
+  line-height: 1.18;
 }
 
 .timer {

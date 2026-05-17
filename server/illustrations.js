@@ -108,7 +108,49 @@ const notes = {
 
 export function renderExerciseSvg(filename) {
   const item = map[filename] || map['marche-sur-place.png'];
-  return frame(filename, item.title, item.cue, notes[filename] || notes['marche-sur-place.png']);
+  return instructionPoster(item.title, item.cue, notes[filename] || notes['marche-sur-place.png']);
+}
+
+function instructionPoster(title, cue, cards) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="640" viewBox="0 0 900 640" role="img" aria-label="${esc(title)}">
+    <rect width="900" height="640" fill="#edf4f1"/>
+    <rect x="42" y="38" width="816" height="564" rx="24" fill="#ffffff"/>
+    <text x="450" y="92" text-anchor="middle" font-family="Arial, sans-serif" font-size="38" font-weight="850" fill="#263b3a">${esc(title)}</text>
+    <text x="450" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="23" font-weight="750" fill="#3f6f68">${esc(cue)}</text>
+    ${largeStep(85, 172, 1, 'Position', cards[0], '#edf4f1', '#3f6f68')}
+    ${largeStep(85, 315, 2, 'Mouvement', cards[1], '#f8fbf9', '#3f6f68')}
+    ${largeStep(85, 458, 3, 'A surveiller', cards[2], '#fff7e5', '#e5a85c')}
+    <path d="M735 250 C775 295 775 372 735 420" stroke="#e5a85c" stroke-width="14" fill="none" stroke-linecap="round"/>
+    <path d="M735 420 l-10 -36 l37 8" stroke="#e5a85c" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="724" y="332" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="850" fill="#8a501f">lentement</text>
+  </svg>`;
+}
+
+function largeStep(x, y, number, label, text, fill, accent) {
+  const lines = wrapWords(text, 40, 3);
+  return `<g>
+    <rect x="${x}" y="${y}" width="600" height="104" rx="18" fill="${fill}" stroke="#d8e0dc" stroke-width="3"/>
+    <circle cx="${x + 54}" cy="${y + 52}" r="34" fill="${accent}"/>
+    <text x="${x + 54}" y="${y + 64}" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="900" fill="#ffffff">${number}</text>
+    <text x="${x + 108}" y="${y + 38}" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="${accent}">${esc(label)}</text>
+    <text x="${x + 108}" y="${y + 68}" font-family="Arial, sans-serif" font-size="24" font-weight="800" fill="#263b3a">
+      ${lines.map((line, index) => `<tspan x="${x + 108}" dy="${index === 0 ? 0 : 27}">${esc(line)}</tspan>`).join('')}
+    </text>
+  </g>`;
+}
+
+function wrapWords(text, maxLength, maxLines) {
+  const words = String(text).split(' ');
+  const lines = [''];
+  for (const word of words) {
+    const current = lines[lines.length - 1];
+    if (`${current} ${word}`.trim().length > maxLength && lines.length < maxLines) {
+      lines.push(word);
+    } else {
+      lines[lines.length - 1] = `${current} ${word}`.trim();
+    }
+  }
+  return lines;
 }
 
 function frame(filename, title, cue, cards) {
