@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Activity, BarChart3, Check, Dumbbell, HeartPulse, Home, Pause, Play, RotateCcw, Settings, SkipForward, Volume2 } from 'lucide-react';
 import './styles.css';
@@ -139,6 +139,7 @@ function SessionPage({ today, onRefresh }) {
   const [remaining, setRemaining] = useState(0);
   const [paused, setPaused] = useState(false);
   const [zoomImage, setZoomImage] = useState(false);
+  const wakeLockRef = useRef(null);
   const exercise = workout.exercises[index];
   const next = workout.exercises[index + 1];
   const preparationSeconds = today.settings.preparationSeconds || DEFAULT_PREPARATION_SECONDS;
@@ -153,16 +154,35 @@ function SessionPage({ today, onRefresh }) {
   }, [exercise?.id, preparationSeconds]);
 
   useEffect(() => {
-    if (phase === 'ready' || paused || !exercise) return undefined;
+    const keepWakeLock = () => {
+      if (document.visibilityState === 'visible' && phase !== 'ready' && phase !== 'done') {
+        requestWakeLock(wakeLockRef);
+      }
+    };
+    document.addEventListener('visibilitychange', keepWakeLock);
+    return () => {
+      document.removeEventListener('visibilitychange', keepWakeLock);
+      releaseWakeLock(wakeLockRef);
+    };
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase === 'ready' || phase === 'done' || paused || !exercise) return undefined;
     if (remaining <= 0) {
-      beep(today.settings.timerSound);
       if (phase === 'prep') {
+        playTimerSound(today.settings.timerSound, 'start');
         setPhase('work');
         setRemaining(exercise.planned_duration_seconds || Math.max(20, (exercise.planned_repetitions || 8) * 4));
       } else if (phase === 'work' && series < exercise.planned_sets) {
+        playTimerSound(today.settings.timerSound, 'end');
         setPhase('rest');
         setRemaining(exercise.rest_seconds || today.settings.defaultRestSeconds || 30);
+      } else if (phase === 'work') {
+        playTimerSound(today.settings.timerSound, 'complete');
+        setPhase('done');
+        setRemaining(0);
       } else if (phase === 'rest') {
+        playTimerSound(today.settings.timerSound, 'start');
         setSeries((value) => value + 1);
         setPhase('prep');
         setRemaining(preparationSeconds);
@@ -174,6 +194,8 @@ function SessionPage({ today, onRefresh }) {
   }, [phase, paused, remaining, series, exercise, today.settings, preparationSeconds]);
 
   async function start() {
+    unlockAudio(today.settings.timerSound);
+    await requestWakeLock(wakeLockRef);
     await api.post(`/api/workout/${workout.id}/start`);
     setRemaining(preparationSeconds);
     setPhase('prep');
@@ -181,7 +203,10 @@ function SessionPage({ today, onRefresh }) {
 
   async function feedback(feedbackType, painLocation = null) {
     await api.post(`/api/exercise/${exercise.exercise_id}/feedback`, { workoutId: workout.id, feedbackType, painLocation });
-    if (index >= workout.exercises.length - 1) await api.post(`/api/workout/${workout.id}/complete`);
+    if (index >= workout.exercises.length - 1) {
+      await api.post(`/api/workout/${workout.id}/complete`);
+      await releaseWakeLock(wakeLockRef);
+    }
     await onRefresh();
     setIndex((value) => Math.min(value + 1, workout.exercises.length - 1));
   }
@@ -195,13 +220,15 @@ function SessionPage({ today, onRefresh }) {
     ready: 'Prêt',
     prep: 'Prépare-toi',
     work: 'Exercice en cours',
-    rest: 'Pause'
+    rest: 'Pause',
+    done: 'Exercice terminé'
   }[phase];
   const timerHint = {
     ready: `Décompte de ${preparationSeconds}s avant l’effort`,
     prep: 'Mets-toi en place',
     work: 'Effort en cours',
-    rest: 'Récupération'
+    rest: 'Récupération',
+    done: 'Valide quand tu es prêt'
   }[phase];
 
   return (
@@ -386,22 +413,76 @@ function levelName(completedSessions) {
   return '1 · Reprise';
 }
 
-function beep(enabled) {
-  if (!enabled) return;
+let sharedAudioContext = null;
+
+function getAudioContext() {
   const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
-  const ctx = new AudioContext();
+  if (!AudioContext) return null;
+  if (!sharedAudioContext || sharedAudioContext.state === 'closed') {
+    sharedAudioContext = new AudioContext();
+  }
+  return sharedAudioContext;
+}
+
+function unlockAudio(enabled) {
+  if (!enabled) return;
+  const ctx = getAudioContext();
+  if (ctx?.state === 'suspended') ctx.resume();
+}
+
+function playTimerSound(enabled, type = 'start') {
+  if (!enabled) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume();
+  const patterns = {
+    start: [660],
+    end: [740, 520],
+    complete: [880, 660, 880]
+  };
+  const notes = patterns[type] || patterns.start;
+  notes.forEach((frequency, index) => {
+    window.setTimeout(() => tone(ctx, frequency, type === 'complete' ? 0.18 : 0.14), index * 190);
+  });
+}
+
+function tone(ctx, frequency, duration) {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
-  osc.frequency.value = 660;
-  gain.gain.value = 0.05;
+  osc.frequency.value = frequency;
+  gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
   osc.connect(gain);
   gain.connect(ctx.destination);
   osc.start();
-  window.setTimeout(() => {
-    osc.stop();
-    ctx.close();
-  }, 140);
+  osc.stop(ctx.currentTime + duration + 0.03);
+}
+
+async function requestWakeLock(ref) {
+  if (!('wakeLock' in navigator)) return false;
+  try {
+    if (!ref.current) {
+      ref.current = await navigator.wakeLock.request('screen');
+      ref.current.addEventListener('release', () => {
+        ref.current = null;
+      });
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function releaseWakeLock(ref) {
+  if (!ref.current) return;
+  try {
+    await ref.current.release();
+  } catch {
+    // Wake Lock may already be released by the browser.
+  } finally {
+    ref.current = null;
+  }
 }
 
 createRoot(document.getElementById('root')).render(<App />);
