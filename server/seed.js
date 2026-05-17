@@ -53,6 +53,7 @@ export function seed() {
 
   const defaults = {
     defaultRestSeconds: 30,
+    preparationSeconds: 8,
     timerSound: true,
     preferredDays: ['lundi', 'mercredi', 'jeudi', 'vendredi', 'dimanche'],
     equipment: ['vélo d’appartement', 'tapis', 'élastique', 'chaise', 'bouteilles d’eau'],

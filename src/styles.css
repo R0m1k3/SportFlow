@@ -236,15 +236,38 @@ h2 {
   width: min(82vw, 360px);
   aspect-ratio: 1;
   border-radius: 999px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   color: var(--green-dark);
   background: radial-gradient(circle at 50% 42%, #ffffff 0 52%, var(--mint) 53% 100%);
   border: 10px solid var(--green);
-  font-size: clamp(3.2rem, 18vw, 5.8rem);
   font-weight: 900;
   font-variant-numeric: tabular-nums;
   box-shadow: var(--shadow);
+  text-align: center;
+  padding: 1.1rem;
+}
+
+.timer span {
+  font-size: clamp(3.2rem, 18vw, 5.8rem);
+  line-height: 1;
+}
+
+.timer small {
+  width: min(70%, 230px);
+  margin-top: 0.45rem;
+  color: #4f5c5a;
+  font-size: clamp(0.8rem, 3vw, 1rem);
+  font-weight: 800;
+  line-height: 1.15;
+  white-space: normal;
+}
+
+.timer.prep {
+  border-color: var(--amber);
+  background: radial-gradient(circle at 50% 42%, #fffdf8 0 52%, #f8e7c9 53% 100%);
 }
 
 .timer.urgent {

@@ -16,6 +16,8 @@ const api = {
   post: (url, body = {}) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then((res) => res.json())
 };
 
+const DEFAULT_PREPARATION_SECONDS = 8;
+
 function App() {
   const [tab, setTab] = useState('home');
   const [today, setToday] = useState(null);
@@ -116,36 +118,41 @@ function SessionPage({ today, onRefresh }) {
   const [paused, setPaused] = useState(false);
   const exercise = workout.exercises[index];
   const next = workout.exercises[index + 1];
+  const preparationSeconds = today.settings.preparationSeconds || DEFAULT_PREPARATION_SECONDS;
 
   useEffect(() => {
     if (!exercise) return;
-    setRemaining(exercise.planned_duration_seconds || Math.max(20, (exercise.planned_repetitions || 8) * 4));
+    setRemaining(preparationSeconds);
     setPhase('ready');
     setSeries(1);
     setPaused(false);
-  }, [exercise?.id]);
+  }, [exercise?.id, preparationSeconds]);
 
   useEffect(() => {
     if (phase === 'ready' || paused || !exercise) return undefined;
     if (remaining <= 0) {
       beep(today.settings.timerSound);
-      if (phase === 'work' && series < exercise.planned_sets) {
+      if (phase === 'prep') {
+        setPhase('work');
+        setRemaining(exercise.planned_duration_seconds || Math.max(20, (exercise.planned_repetitions || 8) * 4));
+      } else if (phase === 'work' && series < exercise.planned_sets) {
         setPhase('rest');
         setRemaining(exercise.rest_seconds || today.settings.defaultRestSeconds || 30);
       } else if (phase === 'rest') {
         setSeries((value) => value + 1);
-        setPhase('work');
-        setRemaining(exercise.planned_duration_seconds || Math.max(20, (exercise.planned_repetitions || 8) * 4));
+        setPhase('prep');
+        setRemaining(preparationSeconds);
       }
       return undefined;
     }
     const timer = window.setTimeout(() => setRemaining((value) => value - 1), 1000);
     return () => window.clearTimeout(timer);
-  }, [phase, paused, remaining, series, exercise, today.settings]);
+  }, [phase, paused, remaining, series, exercise, today.settings, preparationSeconds]);
 
   async function start() {
     await api.post(`/api/workout/${workout.id}/start`);
-    setPhase('work');
+    setRemaining(preparationSeconds);
+    setPhase('prep');
   }
 
   async function feedback(feedbackType, painLocation = null) {
@@ -160,22 +167,37 @@ function SessionPage({ today, onRefresh }) {
   }
 
   const isLastSeconds = phase !== 'ready' && remaining <= 5;
+  const phaseLabel = {
+    ready: 'Prêt',
+    prep: 'Prépare-toi',
+    work: 'Exercice en cours',
+    rest: 'Pause'
+  }[phase];
+  const timerHint = {
+    ready: `Décompte de ${preparationSeconds}s avant l’effort`,
+    prep: 'Mets-toi en place',
+    work: 'Effort en cours',
+    rest: 'Récupération'
+  }[phase];
 
   return (
     <section className="session">
       <img className="exercise-image" src={`/exercises/${exercise.image_path}`} alt={exercise.name} />
       <div className="session-title">
-        <p className="eyebrow">{phase === 'rest' ? 'Pause' : 'Exercice en cours'}</p>
+        <p className="eyebrow">{phaseLabel}</p>
         <h1>{exercise.name}</h1>
         <p>{exercise.instructions}</p>
       </div>
-      <div className={`timer ${isLastSeconds ? 'urgent' : ''}`}>{formatTime(remaining)}</div>
+      <div className={`timer ${phase === 'prep' ? 'prep' : ''} ${isLastSeconds ? 'urgent' : ''}`}>
+        <span>{formatTime(remaining)}</span>
+        <small>{timerHint}</small>
+      </div>
       <div className="session-status">
         <span>Série {series}/{exercise.planned_sets}</span>
+        <span>{preparationSeconds}s prépa.</span>
         <span>{exercise.planned_duration_seconds ? `${exercise.planned_duration_seconds}s effort` : `${exercise.planned_repetitions} rép.`}</span>
-        <span>{exercise.rest_seconds}s pause</span>
       </div>
-      <div className="next-box">Suivant : {next ? next.name : 'fin de séance'}</div>
+      <div className="next-box">Pause : {exercise.rest_seconds}s · Suivant : {next ? next.name : 'fin de séance'}</div>
       <p className="precaution">{exercise.precautions}</p>
       {phase === 'ready' ? (
         <button className="primary big sticky-action" onClick={start}><Play /> Démarrer</button>
@@ -255,6 +277,7 @@ function SettingsPage({ data, onSaved }) {
         <label>Poids actuel<input type="number" value={user.current_weight || ''} onChange={(e) => setUser({ ...user, current_weight: Number(e.target.value) })} /></label>
         <label>Objectif de poids<input type="number" value={user.target_weight || ''} onChange={(e) => setUser({ ...user, target_weight: Number(e.target.value) })} /></label>
         <label>Pause par défaut<input type="number" value={settings.defaultRestSeconds || 30} onChange={(e) => setSettings({ ...settings, defaultRestSeconds: Number(e.target.value) })} /></label>
+        <label>Décompte avant effort<input type="number" min="3" max="30" value={settings.preparationSeconds || DEFAULT_PREPARATION_SECONDS} onChange={(e) => setSettings({ ...settings, preparationSeconds: Number(e.target.value) })} /></label>
         <label className="toggle"><input type="checkbox" checked={settings.timerSound} onChange={(e) => setSettings({ ...settings, timerSound: e.target.checked })} /> <Volume2 size={18} /> Son du chronomètre</label>
         <button className="primary big" onClick={save}><Check /> Enregistrer</button>
       </div>
