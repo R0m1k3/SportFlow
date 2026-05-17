@@ -3,6 +3,7 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { db, getSettings, getUser, migrate, nowIso, setSetting } from './db.js';
+import { renderExerciseSvg } from './illustrations.js';
 import { seed } from './seed.js';
 import { getOrCreateTodayWorkout, hydrateWorkout, recalculateProgression, recordFeedback, weeklySummary } from './workouts.js';
 
@@ -138,16 +139,3 @@ if (fs.existsSync(dist)) {
 app.listen(port, '0.0.0.0', () => {
   console.log(`SportFlow disponible sur http://0.0.0.0:${port}`);
 });
-
-function renderExerciseSvg(filename) {
-  const label = filename.replace('.png', '').replaceAll('-', ' ');
-  return `
-  <svg xmlns="http://www.w3.org/2000/svg" width="900" height="640" viewBox="0 0 900 640" role="img" aria-label="${label}">
-    <rect width="900" height="640" fill="#edf4f1"/>
-    <rect x="60" y="60" width="780" height="520" rx="28" fill="#ffffff"/>
-    <circle cx="450" cy="150" r="48" fill="#3f6f68"/>
-    <path d="M450 200 L450 340 M450 250 L330 300 M450 250 L570 300 M450 340 L360 475 M450 340 L540 475" stroke="#263b3a" stroke-width="28" stroke-linecap="round"/>
-    <path d="M285 510 C380 555 520 555 615 510" stroke="#e5a85c" stroke-width="20" fill="none" stroke-linecap="round"/>
-    <text x="450" y="585" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#263b3a">${label}</text>
-  </svg>`;
-}
