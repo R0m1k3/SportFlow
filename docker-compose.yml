@@ -11,7 +11,6 @@ services:
       - DB_PATH=/app/data/sportflow.sqlite
     volumes:
       - sportflow-data:/app/data
-      - ./public/exercises:/app/public/exercises
 
 volumes:
   sportflow-data:

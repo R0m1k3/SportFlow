@@ -46,13 +46,15 @@ docker cp ./sportflow-backup.sqlite sportflow:/app/data/sportflow.sqlite
 docker compose restart
 ```
 
-Les images d’exercices peuvent être placées dans :
+Les images réalistes d’exercices sont incluses dans l’image Docker. Ne montez pas un volume vide sur `/app/public/exercises`, sinon Docker masquera les images incluses.
+
+Pour remplacer volontairement les images, placez vos fichiers dans :
 
 ```text
 public/exercises
 ```
 
-Si une image `.png` demandée n’existe pas, le serveur génère automatiquement une illustration SVG propre à la même URL.
+Si une image `.png` demandée n’existe pas, le serveur affiche une fiche de secours à la même URL.
 
 ## Développement local
 
@@ -126,7 +128,9 @@ SportFlow/
 │  ├─ icons/
 │  │  └─ icon.svg
 │  └─ exercises/
-│     └─ .gitkeep
+│     ├─ marche-sur-place.png
+│     ├─ gainage-mur.png
+│     └─ ...
 ├─ server/
 │  ├─ db.js
 │  ├─ index.js
