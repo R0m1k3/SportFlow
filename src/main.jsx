@@ -198,7 +198,6 @@ function SessionPage({ today, onRefresh }) {
         <span>{exercise.planned_duration_seconds ? `${exercise.planned_duration_seconds}s effort` : `${exercise.planned_repetitions} rép.`}</span>
       </div>
       <div className="next-box">Pause : {exercise.rest_seconds}s · Suivant : {next ? next.name : 'fin de séance'}</div>
-      <p className="precaution">{exercise.precautions}</p>
       {phase === 'ready' ? (
         <button className="primary big sticky-action" onClick={start}><Play /> Démarrer</button>
       ) : (

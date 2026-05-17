@@ -208,7 +208,7 @@ h2 {
 .session {
   min-height: calc(100dvh - 118px);
   display: grid;
-  grid-template-rows: auto auto auto auto auto 1fr;
+  grid-template-rows: auto auto auto auto 1fr;
   gap: 0.85rem;
 }
 
@@ -282,19 +282,13 @@ h2 {
 }
 
 .session-status span,
-.next-box,
-.precaution {
+.next-box {
   background: white;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.7rem;
   font-size: 0.9rem;
   text-align: center;
-}
-
-.precaution {
-  color: #7b4e1f;
-  background: #fff8ed;
 }
 
 .action-grid {
@@ -384,8 +378,23 @@ input {
   background: transparent;
   color: #66736f;
   display: grid;
+  justify-items: center;
+  align-content: center;
   gap: 0.15rem;
   font-size: 0.68rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.bottom-nav button svg {
+  display: block;
+  justify-self: center;
+}
+
+.bottom-nav button span {
+  display: block;
+  width: 100%;
+  text-align: center;
 }
 
 .bottom-nav button.active {
