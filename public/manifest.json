@@ -1,0 +1,19 @@
+{
+  "name": "SportFlow - exercices maison",
+  "short_name": "SportFlow",
+  "description": "Séances douces, chronomètre, pauses et progression à la maison.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f7f4",
+  "theme_color": "#3f6f68",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

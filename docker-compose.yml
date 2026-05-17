@@ -1,0 +1,17 @@
+services:
+  sportflow:
+    build: .
+    container_name: sportflow
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_PATH=/app/data/sportflow.sqlite
+    volumes:
+      - sportflow-data:/app/data
+      - ./public/exercises:/app/public/exercises
+
+volumes:
+  sportflow-data:
