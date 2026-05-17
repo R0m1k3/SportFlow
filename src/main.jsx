@@ -139,6 +139,7 @@ function SessionPage({ today, onRefresh }) {
   const [remaining, setRemaining] = useState(0);
   const [paused, setPaused] = useState(false);
   const [zoomImage, setZoomImage] = useState(false);
+  const [sessionFinished, setSessionFinished] = useState(Boolean(workout.completed));
   const wakeLockRef = useRef(null);
   const exercise = workout.exercises[index];
   const next = workout.exercises[index + 1];
@@ -152,6 +153,11 @@ function SessionPage({ today, onRefresh }) {
     setSeries(1);
     setPaused(false);
   }, [exercise?.id, preparationSeconds]);
+
+  useEffect(() => {
+    const allDone = workout.exercises.length > 0 && workout.exercises.every((item) => item.completed || item.skipped);
+    setSessionFinished(Boolean(workout.completed) || allDone);
+  }, [workout.completed, workout.exercises]);
 
   useEffect(() => {
     const keepWakeLock = () => {
@@ -206,9 +212,25 @@ function SessionPage({ today, onRefresh }) {
     if (index >= workout.exercises.length - 1) {
       await api.post(`/api/workout/${workout.id}/complete`);
       await releaseWakeLock(wakeLockRef);
+      setSessionFinished(true);
     }
     await onRefresh();
     setIndex((value) => Math.min(value + 1, workout.exercises.length - 1));
+  }
+
+  if (sessionFinished) {
+    return (
+      <section className="session-finished">
+        <div className="finish-mark"><Check size={52} /></div>
+        <h1>Séance terminée</h1>
+        <p>Bravo, les exercices prévus aujourd’hui sont validés.</p>
+        <div className="metric-grid">
+          <Metric label="Durée prévue" value={`${workout.planned_duration} min`} />
+          <Metric label="Exercices" value={workout.exercises.length} />
+          <Metric label="Statut" value="Validée" />
+        </div>
+      </section>
+    );
   }
 
   if (!exercise) {

@@ -454,6 +454,31 @@ input {
   padding: 1rem;
 }
 
+.session-finished {
+  min-height: calc(100dvh - 150px);
+  display: grid;
+  align-content: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.finish-mark {
+  justify-self: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: white;
+  background: var(--green);
+  box-shadow: var(--shadow);
+}
+
+.session-finished p {
+  color: #4f5c5a;
+  font-size: 1.05rem;
+}
+
 .image-modal {
   position: fixed;
   z-index: 30;
